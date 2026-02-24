@@ -38,19 +38,23 @@ export default function Sidebar() {
                     </div>
                     <div className="flex flex-col gap-2">
                         <Link
-                            className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${pathname === "/" ? "bg-primary/10 text-primary" : "text-slate-400 hover:text-white hover:bg-white/5"
+                            className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${pathname === "/"
+                                    ? "bg-primary/10 text-primary border border-primary/20"
+                                    : "text-slate-400 hover:text-white hover:bg-white/5"
                                 }`}
                             href="/"
                         >
-                            <span className="material-symbols-outlined">home</span>
+                            <span className={`material-symbols-outlined ${pathname === "/" ? "filled" : ""}`}>home</span>
                             <span className="font-medium">Home</span>
                         </Link>
                         <Link
-                            className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${pathname?.startsWith("/history") ? "bg-primary/10 text-primary" : "text-slate-400 hover:text-white hover:bg-white/5"
+                            className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${pathname === "/history"
+                                    ? "bg-primary/10 text-primary border border-primary/20"
+                                    : "text-slate-400 hover:text-white hover:bg-white/5"
                                 }`}
                             href="/history"
                         >
-                            <span className="material-symbols-outlined">history</span>
+                            <span className={`material-symbols-outlined ${pathname === "/history" ? "filled" : ""}`}>history</span>
                             <span className="font-medium">History</span>
                         </Link>
                         <Link
@@ -62,12 +66,24 @@ export default function Sidebar() {
                             <span className="font-medium">AI Camera</span>
                         </Link>
                         <Link
-                            className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${pathname?.startsWith("/summary") ? "bg-primary/10 text-primary" : "text-slate-400 hover:text-white hover:bg-white/5"
+                            className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${pathname === "/summary"
+                                ? "bg-primary/10 text-primary border border-primary/20"
+                                : "text-slate-400 hover:text-white hover:bg-white/5"
                                 }`}
                             href="/summary"
                         >
-                            <span className="material-symbols-outlined">analytics</span>
+                            <span className={`material-symbols-outlined ${pathname === "/summary" ? "filled" : ""}`}>analytics</span>
                             <span className="font-medium">Analysis</span>
+                        </Link>
+                        <Link
+                            className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${pathname === "/settings"
+                                ? "bg-primary/10 text-primary border border-primary/20"
+                                : "text-slate-400 hover:text-white hover:bg-white/5"
+                                }`}
+                            href="/settings"
+                        >
+                            <span className={`material-symbols-outlined ${pathname === "/settings" ? "filled" : ""}`}>settings</span>
+                            <span className="font-medium">Settings</span>
                         </Link>
                     </div>
                 </div>
