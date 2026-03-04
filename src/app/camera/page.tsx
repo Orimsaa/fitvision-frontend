@@ -44,6 +44,7 @@ function CameraContent() {
 
     // Dynamic AI State
     const [isGoodForm, setIsGoodForm] = useState(true);
+    const isGoodFormRef = useRef(true); // Needed to access latest state inside MediaPipe onResults callback
     const [feedbackTitle, setFeedbackTitle] = useState("AI Ready");
     const [feedbackDetail, setFeedbackDetail] = useState("Start exercising to get feedback.");
     const [formScore, setFormScore] = useState(100);
@@ -110,6 +111,7 @@ function CameraContent() {
         exerciseRef.current = currentExercise;
         // Reset feedback when exercise changes
         setIsGoodForm(true);
+        isGoodFormRef.current = true;
         setFeedbackTitle("AI Ready");
         setFeedbackDetail("Wait for AI to process form...");
         setFormScore(100);
@@ -187,8 +189,23 @@ function CameraContent() {
                 }
 
                 if (results.poseLandmarks) {
-                    drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, { color: "#38ff14", lineWidth: 4 });
-                    drawLandmarks(canvasCtx, results.poseLandmarks, { color: "#ef4444", lineWidth: 2, radius: 4 });
+                    // Dynamic styling based on real-time form status
+                    const isGood = isGoodFormRef.current;
+                    const primaryColor = isGood ? "#38ff14" : "#ff1e1e"; // Neon Green vs Neon Red
+
+                    canvasCtx.save();
+                    // Glow Effect
+                    canvasCtx.shadowBlur = 15;
+                    canvasCtx.shadowColor = primaryColor;
+
+                    // Draw glowing skeleton lines
+                    drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, { color: primaryColor, lineWidth: 6 });
+
+                    // Remove glow for the joints (to keep them sharp)
+                    canvasCtx.shadowBlur = 0;
+                    drawLandmarks(canvasCtx, results.poseLandmarks, { color: "#ffffff", fillColor: primaryColor, lineWidth: 2, radius: 4 });
+
+                    canvasCtx.restore();
 
                     frameCount++;
                     // Run inference every 6 frames to keep real-time UI smooth AND only if tracking has started
@@ -294,6 +311,7 @@ function CameraContent() {
                                     const isFormCorrect = incorrectCount < Math.ceil(window.length / 2); // majority must be incorrect to flag it
 
                                     setIsGoodForm(isFormCorrect);
+                                    isGoodFormRef.current = isFormCorrect;
                                     setFeedbackDetail(data.feedback);
                                     setFeedbackTitle(isFormCorrect ? "Good Form! 💪" : "Correction Needed");
 
