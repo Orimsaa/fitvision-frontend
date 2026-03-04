@@ -418,17 +418,21 @@ function CameraContent() {
                                     <span className={`material-symbols-outlined text-lg md:text-xl ${isGoodForm ? "text-primary" : "text-orange-400"}`}>health_and_safety</span>
                                     <span className="text-xs md:text-sm text-white font-medium whitespace-nowrap">Risk: {isGoodForm ? "Low" : "High"}</span>
                                 </div>
-                                <div className="flex-1 bg-black/40 rounded-xl p-2 md:p-3 flex items-center justify-center gap-1.5 border border-white/5 relative">
-                                    <span className="material-symbols-outlined text-blue-400 text-lg md:text-xl">fitness_center</span>
-                                    <span className="text-xs md:text-sm text-white font-medium flex items-center gap-1">
-                                        Reps: <span className="text-blue-400 font-bold text-lg">{currentReps}</span>/
-                                        <input
-                                            type="number"
-                                            value={repGoal}
-                                            onChange={(e) => setRepGoal(Number(e.target.value) || 1)}
-                                            className="bg-black/40 border border-white/20 rounded-lg w-12 text-center text-sm md:text-base focus:outline-none focus:border-primary py-1"
-                                        />
-                                    </span>
+                                <div className="flex-1 bg-black/40 rounded-xl p-2 md:p-3 flex flex-col items-center justify-center gap-1.5 border border-white/5 relative">
+                                    <div className="flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-blue-400 text-lg md:text-xl">fitness_center</span>
+                                        <span className="text-xs md:text-sm text-white font-medium flex items-center gap-1">
+                                            Reps: <span className="text-blue-400 font-bold text-lg">{currentReps}</span> / {repGoal}
+                                        </span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="1"
+                                        max="50"
+                                        value={repGoal}
+                                        onChange={(e) => setRepGoal(Number(e.target.value))}
+                                        className="w-full h-1.5 md:h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
                                 </div>
                             </div>
                         </div>
