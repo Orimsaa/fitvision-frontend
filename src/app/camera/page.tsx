@@ -178,9 +178,9 @@ function CameraContent() {
                             recorder.ondataavailable = (e) => {
                                 if (e.data && e.data.size > 0) {
                                     chunksRef.current.push(e.data);
-                                    // Keep roughly the last 3-4 seconds
-                                    if (chunksRef.current.length > 4) {
-                                        chunksRef.current.shift();
+                                    // Keep roughly the last 4 seconds, BUT preserve chunks[0] (WebM header)
+                                    if (chunksRef.current.length > 5) {
+                                        chunksRef.current.splice(1, 1);
                                     }
                                 }
                             };
