@@ -418,7 +418,7 @@ function CameraContent() {
                         {/* Developer Video Test Upload Button */}
                         <label className="bg-slate-800/80 hover:bg-slate-700 text-white px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer border border-white/10 flex items-center justify-center transition-colors shadow-lg" title="Upload Pre-recorded Video for testing">
                             <span className="material-symbols-outlined text-[18px] text-blue-400">upload_file</span>
-                            <input type="file" accept="video/mp4,video/webm,video/mov" className="hidden" onChange={handleVideoUpload} />
+                            <input type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} />
                         </label>
 
                         <button
