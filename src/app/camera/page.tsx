@@ -450,6 +450,8 @@ function CameraContent() {
                                 exercise: statsRef.current.exerciseName,
                                 avgScore,
                                 errorCount: errors.length,
+                                completedReps: currentReps,
+                                repGoal: repGoal,
                                 timestamp: new Date().toISOString()
                             };
                             sessionStorage.setItem('fitvision_session_stats', JSON.stringify(sessionData));

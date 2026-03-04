@@ -12,6 +12,15 @@ interface ErrorRecord {
     time: string;
 }
 
+// Group errors by title to show most frequent
+const groupErrors = (errorList: ErrorRecord[]) => {
+    const counts: Record<string, number> = {};
+    errorList.forEach(err => {
+        counts[err.title] = (counts[err.title] || 0) + 1;
+    });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
+};
+
 export default function SummaryPage() {
     const { t } = useLanguage();
     const [errors, setErrors] = useState<ErrorRecord[]>([]);
@@ -99,22 +108,56 @@ export default function SummaryPage() {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-                        <div className="bg-black/40 rounded-2xl p-8 border border-white/10 flex flex-col items-center text-center shadow-lg animate-stagger-summary opacity-0">
-                            <span className="text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">{t.summary.formAccuracy}</span>
-                            <p ref={accuracyRef} className="text-5xl font-bold text-primary">0%</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                        {/* Summary Widget: Form Accuracy */}
+                        <div className="bg-black/40 rounded-2xl p-6 md:p-8 border border-white/10 flex flex-col items-center text-center shadow-lg animate-stagger-summary opacity-0">
+                            <span className="text-slate-400 text-xs md:text-sm font-medium uppercase tracking-wider mb-2">{t.summary.formAccuracy}</span>
+                            <div className="flex items-start">
+                                <p ref={accuracyRef} className="text-4xl lg:text-5xl font-bold text-primary">0%</p>
+                            </div>
                         </div>
-                        <div className="bg-black/40 rounded-2xl p-8 border border-white/10 flex flex-col items-center text-center shadow-lg animate-stagger-summary opacity-0">
-                            <span className="text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">{t.summary.capturedMistakes}</span>
-                            <p ref={mistakesRef} className="text-5xl font-bold text-red-400">0</p>
+
+                        {/* Summary Widget: Repetition Progress */}
+                        <div className="bg-black/40 rounded-2xl p-6 md:p-8 border border-white/10 flex flex-col items-center justify-center text-center shadow-lg animate-stagger-summary opacity-0">
+                            <span className="text-slate-400 text-xs md:text-sm font-medium uppercase tracking-wider mb-2">Workout Progress</span>
+                            <div className="flex items-end gap-1">
+                                <p className="text-4xl lg:text-5xl font-bold text-blue-400">{stats?.completedReps || 0}</p>
+                                <p className="text-xl md:text-2xl font-medium text-slate-500 mb-1">/ {stats?.repGoal || 0}</p>
+                            </div>
+                            {stats?.repGoal > 0 && stats?.completedReps >= stats?.repGoal && (
+                                <span className="mt-2 text-[10px] md:text-xs font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded border border-green-400/20">GOAL REACHED!</span>
+                            )}
                         </div>
-                        <div className="bg-black/40 rounded-2xl p-8 border border-white/10 flex flex-col items-center text-center shadow-lg md:col-span-2 animate-stagger-summary opacity-0">
-                            <span className="text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">{t.summary.overallRisk}</span>
-                            <p className={`text-3xl lg:text-5xl font-bold ${errors.length > 3 ? 'text-red-500' : errors.length > 0 ? 'text-orange-400' : 'text-primary'}`}>
-                                {errors.length > 3 ? t.summary.riskLevels.high : errors.length > 0 ? t.summary.riskLevels.moderate : t.summary.riskLevels.safe}
-                            </p>
+
+                        {/* Summary Widget: Total Mistakes */}
+                        <div className="bg-black/40 rounded-2xl p-6 md:p-8 border border-white/10 flex flex-col items-center text-center shadow-lg animate-stagger-summary opacity-0">
+                            <span className="text-slate-400 text-xs md:text-sm font-medium uppercase tracking-wider mb-2">{t.summary.capturedMistakes}</span>
+                            <div className="flex flex-col items-center">
+                                <p ref={mistakesRef} className="text-4xl lg:text-5xl font-bold text-red-400">0</p>
+                                <span className={`mt-2 text-[10px] md:text-xs font-bold px-2 py-0.5 rounded border ${errors.length > 3 ? 'text-red-500 bg-red-500/10 border-red-500/20' : errors.length > 0 ? 'text-orange-400 bg-orange-400/10 border-orange-400/20' : 'text-primary bg-primary/10 border-primary/20'}`}>
+                                    {errors.length > 3 ? t.summary.riskLevels.high : errors.length > 0 ? t.summary.riskLevels.moderate : t.summary.riskLevels.safe}
+                                </span>
+                            </div>
                         </div>
                     </div>
+
+                    {/* Breakdown of Frequent Errors */}
+                    {errors.length > 0 && (
+                        <div className="bg-surface-dark border border-white/10 rounded-2xl p-6 animate-stagger-summary opacity-0">
+                            <h3 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
+                                <span className="material-symbols-outlined text-orange-400">troubleshoot</span>
+                                Frequent Mistakes Breakdown
+                            </h3>
+                            <div className="flex flex-wrap gap-3">
+                                {groupErrors(errors).map(([title, count], idx) => (
+                                    <div key={idx} className="flex items-center justify-between bg-black/40 border border-white/5 rounded-xl px-4 py-3 min-w-[200px] flex-1">
+                                        <span className="text-sm font-bold text-slate-300 truncate mr-3">{title}</span>
+                                        <span className="bg-red-500/20 text-red-400 text-xs font-bold px-2 py-1 rounded">x{count}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     <section className="flex flex-col gap-6 animate-stagger-summary opacity-0">
                         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
