@@ -18,17 +18,21 @@ export default function ErrorReplayPage() {
             setErrorData(JSON.parse(stored));
         }
         setHasChecked(true);
-
-        // Entrance animation
-        anime({
-            targets: '.animate-stagger-replay',
-            opacity: [0, 1],
-            translateY: [20, 0],
-            duration: 800,
-            easing: 'easeOutExpo',
-            delay: anime.stagger(100, { start: 100 })
-        });
     }, []);
+
+    useEffect(() => {
+        if (errorData) {
+            // Entrance animation (must wait until errorData is loaded and elements are rendered)
+            anime({
+                targets: '.animate-stagger-replay',
+                opacity: [0, 1],
+                translateY: [20, 0],
+                duration: 800,
+                easing: 'easeOutExpo',
+                delay: anime.stagger(100, { start: 100 })
+            });
+        }
+    }, [errorData]);
 
     if (!hasChecked) {
         return (
