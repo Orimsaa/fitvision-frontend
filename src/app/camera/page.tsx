@@ -47,6 +47,58 @@ function CameraContent() {
     const statsRef = useRef({ scores: [] as number[], exerciseName: exerciseName });
     useEffect(() => { statsRef.current.exerciseName = exerciseName; }, [exerciseName]);
 
+    // Developer Test Mode refs
+    const cameraWrapperRef = useRef<any>(null);
+    const poseWrapperRef = useRef<any>(null);
+    const isMockVideoPlaying = useRef<boolean>(false);
+
+    const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !videoRef.current || !poseWrapperRef.current) return;
+
+        // Stop the webcam camera wrapper
+        if (cameraWrapperRef.current) {
+            cameraWrapperRef.current.stop();
+        }
+
+        const videoUrl = URL.createObjectURL(file);
+        const videoElement = videoRef.current;
+        videoElement.srcObject = null;
+        videoElement.src = videoUrl;
+        videoElement.loop = true;
+        videoElement.muted = true;
+
+        isMockVideoPlaying.current = true;
+        setIsTrackingStarted(true);
+        setFeedbackDetail("Processing Simulation...");
+
+        videoElement.play();
+
+        const processFrame = async () => {
+            if (!isMockVideoPlaying.current || !videoElement || videoElement.paused || videoElement.ended) return;
+            try {
+                if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+                    await poseWrapperRef.current.send({ image: videoElement });
+                }
+            } catch (err) {
+                console.error("Mock Video Processing Error", err);
+            }
+            if ((videoElement as any).requestVideoFrameCallback) {
+                (videoElement as any).requestVideoFrameCallback(processFrame);
+            } else {
+                requestAnimationFrame(processFrame);
+            }
+        };
+
+        videoElement.onplay = () => {
+            if ((videoElement as any).requestVideoFrameCallback) {
+                (videoElement as any).requestVideoFrameCallback(processFrame);
+            } else {
+                requestAnimationFrame(processFrame);
+            }
+        };
+    };
+
     const exerciseRef = useRef(currentExercise);
     useEffect(() => {
         exerciseRef.current = currentExercise;
@@ -85,11 +137,12 @@ function CameraContent() {
             const canvasElement = canvasRef.current;
             const canvasCtx = canvasElement.getContext("2d");
 
-            pose = new Pose({
+            const pose = new Pose({
                 locateFile: (file: string) => {
                     return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
                 },
             });
+            poseWrapperRef.current = pose;
 
             pose.setOptions({
                 modelComplexity: 1,
@@ -284,14 +337,20 @@ function CameraContent() {
                 onFrame: async () => {
                     if (isUnmounted) return;
                     if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
-                        await pose?.send({ image: videoElement });
+                        try {
+                            if (!isMockVideoPlaying.current) {
+                                await poseWrapperRef.current?.send({ image: videoElement });
+                            }
+                        } catch (e) {
+                            console.error("Mediapipe Error onFrame", e);
+                        }
                     }
                 },
                 width: 640,
                 height: 480,
                 facingMode: facingMode
             });
-
+            cameraWrapperRef.current = camera;
             camera.start();
         };
 
@@ -299,12 +358,13 @@ function CameraContent() {
 
         return () => {
             isUnmounted = true;
-            if (camera) {
-                camera.stop();
+            if (cameraWrapperRef.current) {
+                cameraWrapperRef.current.stop();
             }
-            if (pose) {
-                pose.close();
+            if (poseWrapperRef.current) {
+                poseWrapperRef.current.close();
             }
+            isMockVideoPlaying.current = false;
             if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
                 mediaRecorderRef.current.stop();
             }
@@ -355,6 +415,12 @@ function CameraContent() {
                         <span className="font-bold text-sm hidden md:block">Back</span>
                     </Link>
                     <div className="flex items-center gap-2 md:gap-3">
+                        {/* Developer Video Test Upload Button */}
+                        <label className="bg-slate-800/80 hover:bg-slate-700 text-white px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer border border-white/10 flex items-center justify-center transition-colors shadow-lg" title="Upload Pre-recorded Video for testing">
+                            <span className="material-symbols-outlined text-[18px] text-blue-400">upload_file</span>
+                            <input type="file" accept="video/mp4,video/webm,video/mov" className="hidden" onChange={handleVideoUpload} />
+                        </label>
+
                         <button
                             onClick={() => setFacingMode(prev => prev === "user" ? "environment" : "user")}
                             className="md:hidden flex items-center justify-center size-12 bg-black/40 backdrop-blur-md rounded-full border border-white/10 text-white hover:text-primary transition-colors shadow-lg active:scale-95"
