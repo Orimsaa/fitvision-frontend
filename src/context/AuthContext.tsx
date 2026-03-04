@@ -13,6 +13,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isReady, setIsReady] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
 
@@ -21,10 +22,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const storedStatus = localStorage.getItem("fitvision_is_logged_in");
         if (storedStatus === "true") {
             setIsLoggedIn(true);
+            setIsReady(true);
         } else {
             // If not logged in and not already on the login page or tutorial page, redirect
             if (pathname !== "/login" && pathname !== "/tutorial") {
                 router.push("/login");
+            } else {
+                setIsReady(true);
             }
         }
     }, [pathname, router]);
@@ -42,6 +46,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         sessionStorage.clear();
         router.push("/login");
     };
+
+    if (!isReady) {
+        // Prevent flashing the dashboard layout while checking auth status
+        return <div className="min-h-screen bg-[#0a0f0a]"></div>;
+    }
 
     return (
         <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
