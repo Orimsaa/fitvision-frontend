@@ -313,15 +313,15 @@ function CameraContent() {
                 <header className="flex items-center justify-between w-full">
                     <Link
                         href="/"
-                        className="flex items-center gap-2 text-white/90 hover:text-primary transition-colors bg-black/20 backdrop-blur-md px-3 md:px-4 py-2 rounded-full border border-white/10 shadow-lg"
+                        className="flex items-center gap-2 text-white/90 hover:text-primary transition-colors bg-black/20 backdrop-blur-md px-4 md:px-5 py-3 md:py-2 rounded-full border border-white/10 shadow-lg min-h-[48px]"
                     >
-                        <span className="material-symbols-outlined text-lg">arrow_back_ios_new</span>
-                        <span className="font-medium hidden md:block">Back</span>
+                        <span className="material-symbols-outlined text-xl md:text-lg">arrow_back_ios_new</span>
+                        <span className="font-bold text-sm hidden md:block">Back</span>
                     </Link>
                     <div className="flex items-center gap-2 md:gap-3">
                         <button
                             onClick={() => setFacingMode(prev => prev === "user" ? "environment" : "user")}
-                            className="md:hidden flex items-center justify-center size-10 bg-black/40 backdrop-blur-md rounded-full border border-white/10 text-white hover:text-primary transition-colors shadow-lg active:scale-95"
+                            className="md:hidden flex items-center justify-center size-12 bg-black/40 backdrop-blur-md rounded-full border border-white/10 text-white hover:text-primary transition-colors shadow-lg active:scale-95"
                             title="Flip Camera"
                         >
                             <span className="material-symbols-outlined">flip_camera_ios</span>
@@ -391,42 +391,42 @@ function CameraContent() {
                                     <span className="material-symbols-outlined absolute right-2 md:right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">expand_more</span>
                                 </div>
 
-                                <div className="shrink-0">
-                                    <div className="px-2 md:px-3 py-1 md:py-2 bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 rounded-xl text-primary font-bold flex flex-col items-center justify-center shadow-[0_0_15px_rgba(57,255,20,0.15)] min-w-[60px] md:min-w-[80px]">
-                                        <span className="text-[9px] md:text-[10px] text-primary/80 uppercase tracking-widest leading-none mb-0.5">Form</span>
-                                        <span className="text-lg md:text-xl leading-none">{formScore}<span className="text-[10px] md:text-xs">%</span></span>
+                                <div className="shrink-0 w-24 md:w-32">
+                                    <div className="px-2 md:px-3 py-2 md:py-3 bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 rounded-xl text-primary font-bold flex flex-col items-center justify-center shadow-[0_0_15px_rgba(57,255,20,0.15)] min-w-[80px] md:min-w-[100px]">
+                                        <span className="text-[10px] md:text-xs text-primary/80 uppercase tracking-widest leading-none mb-1">Form</span>
+                                        <span className="text-3xl md:text-4xl font-black leading-none">{formScore}<span className="text-xs md:text-sm font-bold">%</span></span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className={`flex items-start gap-2 border rounded-xl p-2 md:p-3 ${isGoodForm ? "bg-primary/10 border-primary/30" : "bg-red-500/10 border-red-500/30"}`}>
-                                <span className={`material-symbols-outlined shrink-0 text-lg md:text-xl ${isGoodForm ? "text-primary" : "text-red-400"}`}>
+                            <div className={`flex items-start gap-3 border rounded-xl p-3 md:p-4 ${isGoodForm ? "bg-primary/10 border-primary/30" : "bg-red-500/10 border-red-500/30"}`}>
+                                <span className={`material-symbols-outlined shrink-0 text-2xl md:text-3xl ${isGoodForm ? "text-primary" : "text-red-400"}`}>
                                     {isGoodForm ? "check_circle" : "warning"}
                                 </span>
-                                <div className="flex flex-col flex-1 min-w-0">
-                                    <span className={`font-bold text-xs md:text-sm truncate ${isGoodForm ? "text-primary" : "text-red-300"}`}>
+                                <div className="flex flex-col flex-1 min-w-0 justify-center">
+                                    <span className={`font-black text-sm md:text-base truncate ${isGoodForm ? "text-primary" : "text-red-300"}`}>
                                         {feedbackTitle}
                                     </span>
-                                    <span className={`${isGoodForm ? "text-primary" : "text-red-200"} text-[11px] md:text-sm leading-tight opacity-90 line-clamp-2`}>
+                                    <span className={`${isGoodForm ? "text-primary" : "text-red-200"} text-xs md:text-sm leading-tight opacity-90 line-clamp-2`}>
                                         {isModelReady ? feedbackDetail : "Warming up AI models... Please stand in frame."}
                                     </span>
                                 </div>
                             </div>
 
                             <div className="flex gap-2 mt-1">
-                                <div className="flex-1 bg-black/40 rounded-lg p-1.5 md:p-2 flex items-center justify-center gap-1.5 border border-white/5">
-                                    <span className={`material-symbols-outlined text-sm md:text-base ${isGoodForm ? "text-primary" : "text-orange-400"}`}>health_and_safety</span>
-                                    <span className="text-[10px] md:text-xs text-white font-medium whitespace-nowrap">Risk: {isGoodForm ? "Low" : "High"}</span>
+                                <div className="flex-1 bg-black/40 rounded-xl p-2 md:p-3 flex items-center justify-center gap-1.5 border border-white/5">
+                                    <span className={`material-symbols-outlined text-lg md:text-xl ${isGoodForm ? "text-primary" : "text-orange-400"}`}>health_and_safety</span>
+                                    <span className="text-xs md:text-sm text-white font-medium whitespace-nowrap">Risk: {isGoodForm ? "Low" : "High"}</span>
                                 </div>
-                                <div className="flex-1 bg-black/40 rounded-lg p-1.5 md:p-2 flex items-center justify-center gap-1.5 border border-white/5 relative">
-                                    <span className="material-symbols-outlined text-blue-400 text-sm md:text-base">fitness_center</span>
-                                    <span className="text-[10px] md:text-xs text-white font-medium flex items-center gap-1">
-                                        Reps: <span className="text-blue-400 font-bold">{currentReps}</span>/
+                                <div className="flex-1 bg-black/40 rounded-xl p-2 md:p-3 flex items-center justify-center gap-1.5 border border-white/5 relative">
+                                    <span className="material-symbols-outlined text-blue-400 text-lg md:text-xl">fitness_center</span>
+                                    <span className="text-xs md:text-sm text-white font-medium flex items-center gap-1">
+                                        Reps: <span className="text-blue-400 font-bold text-lg">{currentReps}</span>/
                                         <input
                                             type="number"
                                             value={repGoal}
                                             onChange={(e) => setRepGoal(Number(e.target.value) || 1)}
-                                            className="bg-transparent border-b border-white/20 w-8 text-center focus:outline-none focus:border-primary px-0 py-0 m-0"
+                                            className="bg-black/40 border border-white/20 rounded-lg w-12 text-center text-sm md:text-base focus:outline-none focus:border-primary py-1"
                                         />
                                     </span>
                                 </div>
@@ -450,10 +450,10 @@ function CameraContent() {
                             };
                             sessionStorage.setItem('fitvision_session_stats', JSON.stringify(sessionData));
                         }}
-                        className="w-full max-w-md h-12 md:h-14 bg-red-600/90 backdrop-blur-md hover:bg-red-500 active:scale-[0.98] transition-all rounded-xl text-white font-bold text-base md:text-lg shadow-lg shadow-red-900/40 border border-red-500/50 flex items-center justify-center gap-2 md:gap-3 cursor-pointer"
+                        className="w-full max-w-md h-14 md:h-16 mt-1 md:mt-2 bg-red-600/90 backdrop-blur-md hover:bg-red-500 active:scale-[0.98] transition-all rounded-2xl text-white font-black text-lg md:text-xl shadow-lg shadow-red-900/40 border border-red-500/50 flex items-center justify-center gap-2 md:gap-3 cursor-pointer mb-2"
                     >
-                        <span className="material-symbols-outlined">stop_circle</span>
-                        End Analysis
+                        <span className="material-symbols-outlined text-2xl">stop_circle</span>
+                        END WORKOUT
                     </Link>
                 </div>
             </div>
