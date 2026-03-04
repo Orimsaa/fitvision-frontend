@@ -1,21 +1,42 @@
+"use client";
+import Link from "next/link";
 import DashboardLayout from "@/components/DashboardLayout";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import anime from "animejs";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function HistoryPage() {
+    const { t } = useLanguage();
+    const [history, setHistory] = useState<any[]>([]);
+    const [isHeatmapMenuOpen, setIsHeatmapMenuOpen] = useState(false);
+
+    useEffect(() => {
+        const stored = JSON.parse(localStorage.getItem('fitvision_history') || '[]');
+        setHistory(stored);
+
+        anime({
+            targets: '.animate-stagger-history',
+            opacity: [0, 1],
+            translateY: [20, 0],
+            duration: 800,
+            easing: 'easeOutExpo',
+            delay: anime.stagger(100, { start: 100 })
+        });
+    }, []);
     return (
         <>
             <DashboardLayout>
                 <div className="max-w-[1200px] mx-auto p-6 md:p-10 flex flex-col gap-8 pb-20">
                     {/* Premium Header Section */}
-                    <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-2">
+                    <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-2 animate-stagger-history opacity-0">
                         <div className="flex flex-col gap-2">
                             <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 flex items-center gap-3">
                                 <span className="material-symbols-outlined text-primary text-4xl md:text-5xl drop-shadow-[0_0_12px_rgba(57,255,20,0.4)]">history</span>
-                                Workout History
+                                {t.history.title}
                             </h1>
                             <p className="text-slate-400 font-medium flex items-center gap-2">
                                 <span className="material-symbols-outlined text-primary/80 text-sm">insights</span>
-                                Track your form accuracy and consistency over time.
+                                {t.history.subtitle}
                             </p>
                         </div>
 
@@ -23,7 +44,7 @@ export default function HistoryPage() {
                         <div className="flex gap-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
                             <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-black font-semibold hover:bg-primary/90 transition-colors shrink-0">
                                 <span className="material-symbols-outlined text-[20px]">tune</span>
-                                <span>All Exercises</span>
+                                <span>{t.history.filters.all}</span>
                             </button>
                             <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-surface-dark border border-white/10 text-white hover:border-primary/50 transition-colors shrink-0">
                                 <span>Deadlift</span>
@@ -40,13 +61,13 @@ export default function HistoryPage() {
                     {/* Top Grid: Chart & Key Stats */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Large Chart Card */}
-                        <div className="lg:col-span-3 bg-surface-dark rounded-2xl p-6 md:p-8 border border-white/5 relative overflow-hidden group">
+                        <div className="lg:col-span-3 bg-surface-dark rounded-2xl p-6 md:p-8 border border-white/5 relative overflow-hidden group animate-stagger-history opacity-0">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none"></div>
 
                             <div className="flex justify-between items-start mb-8 relative z-10">
                                 <div>
-                                    <h2 className="text-xl font-semibold text-white mb-1">Form Accuracy Trend</h2>
-                                    <p className="text-slate-400 text-sm">Last 30 Days</p>
+                                    <h2 className="text-xl font-semibold text-white mb-1">{t.history.chart.title}</h2>
+                                    <p className="text-slate-400 text-sm">{t.history.chart.subtitle}</p>
                                 </div>
                                 <div className="text-right">
                                     <div className="text-3xl font-bold text-white flex items-center justify-end gap-2">
@@ -56,7 +77,7 @@ export default function HistoryPage() {
                                             +12%
                                         </span>
                                     </div>
-                                    <p className="text-primary text-sm font-medium mt-1">Excellent Progress</p>
+                                    <p className="text-primary text-sm font-medium mt-1">{t.history.chart.progress}</p>
                                 </div>
                             </div>
 
@@ -113,46 +134,85 @@ export default function HistoryPage() {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Left Column: Heatmap */}
-                        <div className="lg:col-span-1 flex flex-col gap-6">
+                        <div className="lg:col-span-1 flex flex-col gap-6 animate-stagger-history opacity-0">
                             <div className="bg-surface-dark rounded-2xl p-6 border border-white/5 h-full">
                                 <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-lg font-bold text-white">Activity Heatmap</h3>
-                                    <button className="text-slate-400 hover:text-white transition-colors">
-                                        <span className="material-symbols-outlined">more_horiz</span>
-                                    </button>
+                                    <h3 className="text-lg font-bold text-white">{t.history.heatmap.title}</h3>
+                                    <div className="relative">
+                                        <button
+                                            onClick={() => setIsHeatmapMenuOpen(!isHeatmapMenuOpen)}
+                                            className="text-slate-400 hover:text-white transition-colors flex items-center justify-center size-8 rounded-full hover:bg-white/5"
+                                        >
+                                            <span className="material-symbols-outlined">more_horiz</span>
+                                        </button>
+
+                                        {isHeatmapMenuOpen && (
+                                            <>
+                                                {/* Backdrop to close menu when clicking outside */}
+                                                <div
+                                                    className="fixed inset-0 z-40"
+                                                    onClick={() => setIsHeatmapMenuOpen(false)}
+                                                ></div>
+
+                                                {/* Dropdown Menu */}
+                                                <div className="absolute right-0 top-full mt-2 w-48 bg-surface-darker border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden py-1 animate-fade-in-up">
+                                                    <button
+                                                        onClick={() => setIsHeatmapMenuOpen(false)}
+                                                        className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-3"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[18px]">calendar_month</span> {t.history.heatmap.viewYear}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setIsHeatmapMenuOpen(false)}
+                                                        className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-3 border-t border-white/5 mt-1 pt-3"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[18px]">download</span> {t.history.heatmap.exportData}
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* Heatmap Grid */}
-                                <div className="flex flex-col gap-2">
-                                    <div className="flex justify-between text-xs text-slate-500 mb-2">
-                                        <span>Mon</span>
-                                        <span>Wed</span>
-                                        <span>Fri</span>
-                                        <span>Sun</span>
+                                <div className="flex flex-col w-full overflow-hidden mt-2">
+                                    <div className="flex justify-between text-[10px] text-slate-500 font-medium mb-2 pl-8 pr-2">
+                                        <span>Jan</span>
+                                        <span>Feb</span>
+                                        <span>Mar</span>
                                     </div>
-                                    <div className="grid grid-rows-7 grid-flow-col gap-1.5 h-[180px]">
-                                        {/* Dummy Heatmap data generated via code */}
-                                        {[...Array(28)].map((_, i) => {
-                                            const rand = Math.random();
-                                            const weight =
-                                                rand > 0.8
-                                                    ? "bg-primary shadow-[0_0_8px_rgba(57,255,20,0.4)]"
-                                                    : rand > 0.6
-                                                        ? "bg-primary/80"
-                                                        : rand > 0.4
-                                                            ? "bg-primary/40"
-                                                            : "bg-surface-darker border border-white/5";
-                                            return <div key={i} className={`rounded-sm aspect-square ${weight}`}></div>;
-                                        })}
+                                    <div className="flex items-start gap-2 w-full">
+                                        <div className="flex flex-col justify-between text-[10px] text-slate-500 font-medium h-max gap-[13px] pt-1 sm:pt-1.5 sm:gap-[15px]">
+                                            <span>Mon</span>
+                                            <span>Wed</span>
+                                            <span>Fri</span>
+                                            <span>Sun</span>
+                                        </div>
+                                        <div className="grid grid-rows-7 grid-flow-col gap-1.5 flex-1 overflow-x-auto scrollbar-hide pb-2">
+                                            {[...Array(84)].map((_, i) => {
+                                                const rand = Math.random();
+                                                // Make earlier dates have less activity on average
+                                                const activeLevel = rand + (i / 84) * 0.5;
+                                                const weight =
+                                                    activeLevel > 1.2
+                                                        ? "bg-primary shadow-[0_0_8px_rgba(57,255,20,0.4)]"
+                                                        : activeLevel > 0.9
+                                                            ? "bg-primary/80"
+                                                            : activeLevel > 0.6
+                                                                ? "bg-primary/40"
+                                                                : "bg-surface-darker border border-white/5";
+                                                return <div key={i} className={`rounded-[2px] w-3 h-3 sm:w-4 sm:h-4 shrink-0 transition-colors hover:border hover:border-white ${weight}`}></div>;
+                                            })}
+                                        </div>
                                     </div>
 
-                                    <div className="flex items-center gap-2 mt-4 justify-end text-xs text-slate-500">
+                                    <div className="flex items-center gap-2 mt-2 justify-end text-xs text-slate-500">
                                         <span>Less</span>
                                         <div className="flex gap-1">
-                                            <div className="w-3 h-3 rounded-sm bg-surface-darker border border-white/5"></div>
-                                            <div className="w-3 h-3 rounded-sm bg-primary/20"></div>
-                                            <div className="w-3 h-3 rounded-sm bg-primary/60"></div>
-                                            <div className="w-3 h-3 rounded-sm bg-primary shadow-[0_0_5px_rgba(57,255,20,0.3)]"></div>
+                                            <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-sm bg-surface-darker border border-white/5"></div>
+                                            <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-sm bg-primary/40"></div>
+                                            <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-sm bg-primary/80"></div>
+                                            <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-sm bg-primary shadow-[0_0_5px_rgba(57,255,20,0.3)]"></div>
                                         </div>
                                         <span>More</span>
                                     </div>
@@ -161,14 +221,14 @@ export default function HistoryPage() {
                                 {/* Mini Stats below heatmap */}
                                 <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-white/5">
                                     <div>
-                                        <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">Current Streak</p>
+                                        <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">{t.history.heatmap.streak}</p>
                                         <p className="text-white text-xl font-bold flex items-center gap-1">
                                             <span className="material-symbols-outlined text-orange-500 text-lg">local_fire_department</span>
-                                            12 Days
+                                            12 {t.history.heatmap.days}
                                         </p>
                                     </div>
                                     <div>
-                                        <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">Total Workouts</p>
+                                        <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">{t.history.heatmap.totalWorkouts}</p>
                                         <p className="text-white text-xl font-bold">148</p>
                                     </div>
                                 </div>
@@ -178,77 +238,38 @@ export default function HistoryPage() {
                         {/* Right Column: Past Sessions List */}
                         <div className="lg:col-span-2">
                             <div className="flex flex-col gap-4">
-                                <h3 className="text-xl font-bold text-white mb-2">Past Sessions</h3>
+                                <h3 className="text-xl font-bold text-white mb-2">{t.history.pastSessions.title}</h3>
 
-                                {/* Session Card 1 */}
-                                <div className="group flex flex-col sm:flex-row items-center gap-4 bg-surface-dark hover:bg-surface-dark-hover border border-white/5 hover:border-primary/30 p-4 rounded-xl transition-all cursor-pointer">
-                                    <div className="relative w-full sm:w-32 h-32 sm:h-20 shrink-0 rounded-lg overflow-hidden bg-black">
-                                        <img
-                                            alt="Person lifting weights in dark gym"
-                                            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrN_TNR7CAvi6u2qWTzBsL1aKt9HQxnjiKMeR_aCzXPnA5kyJBAr1sP3zG0uQGG04trFmb0LJ9WKxJzgBm-hjAwmZ26XnVsxiMOi10tUHyVTBnPFOvZX_axfJpoq8rvf8YMbHsKp3ck9ujg0rt32l_YTmDjGdkeh7Ei2GcGSy2aceNuoGAYnC4dxUyGbXxfRiIdwIinPcGiZEdJF8Mm06Gtxc9slt4nViv7x1PU2KQ3zkEtY25bcxaNTvJyKqTbLtIPChfbyJ2Ng"
-                                        />
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-transparent transition-colors">
-                                            <span className="material-symbols-outlined text-white opacity-80 group-hover:text-primary group-hover:scale-110 transition-all">
-                                                play_circle
-                                            </span>
+                                {history.length === 0 ? (
+                                    <div className="text-slate-400 p-4 border border-white/5 rounded-xl text-center">{t.history.pastSessions.empty}</div>
+                                ) : history.slice(0, 10).map((session, i) => (
+                                    <Link href={`/history/detail`} key={session.id || i} className="animate-stagger-history opacity-0 group flex flex-col sm:flex-row items-center gap-4 bg-surface-dark hover:bg-surface-dark-hover border border-white/5 hover:border-primary/30 p-4 rounded-xl transition-all cursor-pointer flex-shrink-0">
+                                        <div className="relative w-full sm:w-20 h-20 sm:h-20 shrink-0 rounded-lg overflow-hidden bg-black flex items-center justify-center border border-white/5">
+                                            <span className="material-symbols-outlined text-4xl text-slate-500 group-hover:text-primary transition-all">fitness_center</span>
                                         </div>
-                                    </div>
-                                    <div className="flex flex-col flex-1 w-full text-center sm:text-left">
-                                        <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start mb-1">
-                                            <h4 className="text-lg font-bold text-white group-hover:text-primary transition-colors">
-                                                Heavy Deadlift Session
-                                            </h4>
-                                            <span className="text-xs text-slate-400 bg-white/5 px-2 py-1 rounded">Today, 08:30 AM</span>
+                                        <div className="flex flex-col flex-1 w-full text-center sm:text-left">
+                                            <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start mb-1">
+                                                <h4 className="text-lg font-bold text-white group-hover:text-primary transition-colors capitalize">
+                                                    {session.exercise}
+                                                </h4>
+                                                <span className="text-xs text-slate-400 bg-white/5 px-2 py-1 rounded">
+                                                    {new Date(session.timestamp).toLocaleDateString()} {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-center sm:justify-start gap-4 text-sm text-slate-400 mt-1">
+                                                {session.errorCount === 0 ? (
+                                                    <span className="text-primary font-medium text-xs">{t.history.pastSessions.perfectForm}</span>
+                                                ) : (
+                                                    <span className="text-orange-400 font-medium text-xs">{session.errorCount} {t.history.pastSessions.mistakes}</span>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div className="flex justify-center sm:justify-start gap-4 text-sm text-slate-400">
-                                            <span className="flex items-center gap-1">
-                                                <span className="material-symbols-outlined text-[16px]">fitness_center</span> 5 Sets
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <span className="material-symbols-outlined text-[16px]">timer</span> 45 min
-                                            </span>
+                                        <div className="flex flex-col items-center justify-center pl-0 sm:pl-4 border-l-0 sm:border-l border-white/10 w-full sm:w-auto">
+                                            <span className="text-xs text-slate-400 uppercase tracking-wider mb-1">{t.history.pastSessions.accuracy}</span>
+                                            <span className={`text-2xl font-bold ${session.avgScore > 90 ? 'text-primary drop-shadow-[0_0_5px_rgba(57,255,20,0.5)]' : 'text-white'}`}>{session.avgScore}%</span>
                                         </div>
-                                    </div>
-                                    <div className="flex flex-col items-center justify-center pl-0 sm:pl-4 border-l-0 sm:border-l border-white/10 w-full sm:w-auto">
-                                        <span className="text-xs text-slate-400 uppercase tracking-wider mb-1">Accuracy</span>
-                                        <span className="text-2xl font-bold text-primary drop-shadow-[0_0_5px_rgba(57,255,20,0.5)]">94%</span>
-                                    </div>
-                                </div>
-
-                                {/* Session Card 2 */}
-                                <div className="group flex flex-col sm:flex-row items-center gap-4 bg-surface-dark hover:bg-surface-dark-hover border border-white/5 hover:border-primary/30 p-4 rounded-xl transition-all cursor-pointer">
-                                    <div className="relative w-full sm:w-32 h-32 sm:h-20 shrink-0 rounded-lg overflow-hidden bg-black">
-                                        <img
-                                            alt="Man doing squats in gym"
-                                            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSPGhF6FdF9bU_LRCvoWAyktliyijADwekce0CfAncyducIDikZjxGF5094eW6FMdcAkRM3Zyt863v8ORD01e3_7h_84JVt3r5UabJF2NLrRPqC10XiMFMlLkgeEAMD1IFcBcriuhDbJCIvUuXxjIGLfO88IOv5nQdgr0lcdyCUwBDnSKN4Ce7YRByxTu9pqqCjvb0sIDjbQ5qQouFGeMSARXkws4p3sASsaHpSyW6vmt_-l-Ud4lp9piwPfV-20XYO62ZfRJM6Q"
-                                        />
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-transparent transition-colors">
-                                            <span className="material-symbols-outlined text-white opacity-80 group-hover:text-primary group-hover:scale-110 transition-all">
-                                                play_circle
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col flex-1 w-full text-center sm:text-left">
-                                        <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start mb-1">
-                                            <h4 className="text-lg font-bold text-white group-hover:text-primary transition-colors">Squat Form Check</h4>
-                                            <span className="text-xs text-slate-400 bg-white/5 px-2 py-1 rounded">Yesterday, 06:15 PM</span>
-                                        </div>
-                                        <div className="flex justify-center sm:justify-start gap-4 text-sm text-slate-400">
-                                            <span className="flex items-center gap-1">
-                                                <span className="material-symbols-outlined text-[16px]">fitness_center</span> 4 Sets
-                                            </span>
-                                            <span className="flex items-center gap-1">
-                                                <span className="material-symbols-outlined text-[16px]">timer</span> 35 min
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col items-center justify-center pl-0 sm:pl-4 border-l-0 sm:border-l border-white/10 w-full sm:w-auto">
-                                        <span className="text-xs text-slate-400 uppercase tracking-wider mb-1">Accuracy</span>
-                                        <span className="text-2xl font-bold text-white">88%</span>
-                                    </div>
-                                </div>
+                                    </Link>
+                                ))}
 
                             </div>
                         </div>

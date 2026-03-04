@@ -54,3 +54,28 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #444;
 }
+
+/* Settings Page Specific Styles */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(60, 249, 26, 0.1);
+}
+
+.neon-border-focus:focus {
+  box-shadow: 0 0 0 2px rgba(60, 249, 26, 0.5);
+  border-color: #3cf91a;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(60, 249, 26, 0.2);
+  border-radius: 10px;
+}

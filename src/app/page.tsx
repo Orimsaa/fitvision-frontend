@@ -1,55 +1,123 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import anime from "animejs";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function Home() {
+  const { t } = useLanguage();
   const [exercise, setExercise] = useState<"Bench Press" | "Squat" | "Deadlift">("Bench Press");
+  const [history, setHistory] = useState<any[]>([]);
+
+  // Refs for animated number and bar
+  const accuracyRef = useRef<HTMLSpanElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem('fitvision_history') || '[]');
+    setHistory(stored);
+
+    // Staggered Entrance Animations with Anime.js
+    anime({
+      targets: '.animate-fade-up',
+      opacity: [0, 1],
+      translateY: [30, 0],
+      duration: 800,
+      easing: 'easeOutExpo',
+      delay: anime.stagger(150, { start: 100 })
+    });
+
+    // Athlete Text Animation (Translated from v4 to v3)
+    anime({
+      targets: '.athlete-char',
+      translateY: [
+        { value: '-2.75rem', duration: 600, easing: 'easeOutExpo' },
+        { value: 0, duration: 800, delay: 100, easing: 'easeOutBounce' }
+      ],
+      rotate: {
+        value: ['-1turn', '0turn'],
+        duration: 1500
+      },
+      delay: anime.stagger(50),
+      easing: 'easeInOutCirc',
+      loop: true,
+      endDelay: 1000
+    });
+
+    // Animated Number Counter for Accuracy
+    const finalAccuracy = stored.length > 0 ? Math.round(stored.reduce((acc: any, curr: any) => acc + curr.avgScore, 0) / stored.length) : 0;
+    const counter = { accuracy: 0 };
+
+    anime({
+      targets: counter,
+      accuracy: finalAccuracy,
+      // Removed round: 1 so the float value allows the bar to grow smoothly without stutter
+      easing: 'easeOutExpo',
+      duration: 2500, // 2.5 seconds
+      delay: 400, // Start after staggered entry begins
+      update: function () {
+        if (accuracyRef.current) {
+          accuracyRef.current.innerHTML = `${Math.round(counter.accuracy)}%`;
+        }
+        if (progressBarRef.current) {
+          // Use the precise fractional percentage point for the smoothest width resize
+          progressBarRef.current.style.width = `${counter.accuracy}%`;
+        }
+      }
+    });
+
+  }, []);
 
   return (
     <>
       <DashboardLayout>
         <div className="px-5 md:px-10 max-w-7xl mx-auto">
           {/* Premium Page Header */}
-          <div className="mb-10 mt-2 flex flex-col gap-2">
+          <div className="mb-10 mt-2 flex flex-col gap-2 animate-fade-up opacity-0 text-white">
             <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 flex items-center gap-3">
-              Hello, <span className="text-primary drop-shadow-[0_0_12px_rgba(57,255,20,0.4)]">Athlete</span>
+              {t.dashboard.greeting}
+              <span className="text-primary drop-shadow-[0_0_12px_rgba(57,255,20,0.4)] whitespace-nowrap">
+                {t.dashboard.athlete.split('').map((char, index) => (
+                  <span key={index} className="athlete-char inline-block">{char}</span>
+                ))}
+              </span>
               <span className="material-symbols-outlined text-primary text-3xl md:text-5xl animate-[wave_2s_ease-in-out_infinite] origin-bottom-right">waving_hand</span>
             </h1>
             <p className="text-slate-400 font-medium flex items-center gap-2">
               <span className="material-symbols-outlined text-primary/80 text-sm">electric_bolt</span>
-              Ready to perfect your form today?
+              {t.dashboard.subtitle}
             </p>
           </div>
 
           {/* Exercise Selection Overlay Config */}
-          <div className="mb-8 flex gap-2 p-1.5 rounded-2xl bg-surface-dark/60 backdrop-blur-md w-fit border border-white/10 overflow-x-auto max-w-full shadow-lg">
+          <div className="mb-8 flex gap-2 p-1.5 rounded-2xl bg-surface-dark/60 backdrop-blur-md w-fit border border-white/10 overflow-x-auto max-w-full shadow-lg animate-fade-up opacity-0">
             <button
               onClick={() => setExercise("Bench Press")}
               className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap ${exercise === "Bench Press" ? "bg-primary text-black shadow-[0_0_15px_rgba(57,255,20,0.4)] scale-105" : "text-slate-300 hover:text-white hover:bg-white/10"
                 }`}
             >
-              Bench Press
+              {t.dashboard.exerciseSelection.benchPress}
             </button>
             <button
               onClick={() => setExercise("Squat")}
               className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap ${exercise === "Squat" ? "bg-primary text-black shadow-[0_0_15px_rgba(57,255,20,0.4)] scale-105" : "text-slate-300 hover:text-white hover:bg-white/10"
                 }`}
             >
-              Back Squat
+              {t.dashboard.exerciseSelection.squat}
             </button>
             <button
               onClick={() => setExercise("Deadlift")}
               className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${exercise === "Deadlift" ? "bg-primary text-black shadow-[0_0_15px_rgba(57,255,20,0.4)] scale-105" : "text-slate-300 hover:text-white hover:bg-white/10"
                 }`}
             >
-              Deadlift
+              {t.dashboard.exerciseSelection.deadlift}
             </button>
           </div>
 
           {/* Main Action Card */}
-          <div className="relative w-full rounded-2xl overflow-hidden bg-surface-dark border border-primary/30 shadow-neon group transition-all mb-8">
+          <div className="relative w-full rounded-2xl overflow-hidden bg-surface-dark border border-primary/30 shadow-neon group transition-all mb-8 animate-fade-up opacity-0">
             {/* Background Image with Overlay */}
             <div
               className="absolute inset-0 bg-cover bg-center opacity-40 group-hover:opacity-50 transition-opacity duration-500"
@@ -64,13 +132,13 @@ export default function Home() {
               <div className="max-w-xl">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-wider mb-4 border border-primary/30">
                   <span className="material-symbols-outlined text-[16px]">bolt</span>
-                  AI Powered ({exercise} selected)
+                  {t.dashboard.actionCard.badge} ({exercise} {t.dashboard.actionCard.selected})
                 </div>
                 <h2 className="text-2xl md:text-4xl font-bold text-white mb-2 leading-tight">
-                  Start AI Form Analysis
+                  {t.dashboard.actionCard.title}
                 </h2>
                 <p className="text-slate-300 md:text-lg mb-6">
-                  Analyze your workout form in real-time with our advanced computer vision technology. Get instant feedback on your posture.
+                  {t.dashboard.actionCard.description}
                 </p>
 
                 <div className="flex flex-wrap gap-3">
@@ -79,11 +147,11 @@ export default function Home() {
                     className="bg-primary hover:bg-primary/90 text-background-dark font-bold py-3 px-6 rounded-xl flex items-center gap-2 transition-colors cursor-pointer"
                   >
                     <span className="material-symbols-outlined">videocam</span>
-                    Launch Camera
+                    {t.dashboard.actionCard.launchCamera}
                   </Link>
-                  <button className="bg-white/10 hover:bg-white/20 text-white font-medium py-3 px-6 rounded-xl backdrop-blur-sm transition-colors border border-white/10">
-                    View Tutorial
-                  </button>
+                  <Link href="/tutorial" className="bg-white/10 hover:bg-white/20 text-white font-medium py-3 px-6 rounded-xl backdrop-blur-sm transition-colors border border-white/10 flex items-center justify-center">
+                    {t.dashboard.actionCard.viewTutorial}
+                  </Link>
                 </div>
               </div>
 
@@ -101,30 +169,36 @@ export default function Home() {
           {/* Stats & Recent Scans Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column: Weekly Stats */}
-            <div className="lg:col-span-1 flex flex-col gap-6">
+            <div className="lg:col-span-1 flex flex-col gap-6 animate-fade-up opacity-0">
               <div className="bg-surface-dark border border-white/5 rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-white">Form Accuracy</h3>
+                  <h3 className="text-lg font-bold text-white">{t.dashboard.stats.formAccuracy}</h3>
                   <span className="text-primary text-sm font-mono bg-primary/10 px-2 py-1 rounded">+2.4%</span>
                 </div>
                 <div className="flex items-end gap-2 mb-2">
-                  <span className="text-4xl font-bold text-white">87%</span>
-                  <span className="text-slate-400 mb-1">avg. score</span>
+                  <span ref={accuracyRef} className="text-4xl font-bold text-white">
+                    0%
+                  </span>
+                  <span className="text-slate-400 mb-1">{t.dashboard.stats.avgScore}</span>
                 </div>
                 <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
-                  <div className="bg-primary h-full w-[87%] rounded-full shadow-[0_0_10px_rgba(57,255,20,0.5)]"></div>
+                  <div
+                    ref={progressBarRef}
+                    className="bg-primary h-full rounded-full shadow-[0_0_10px_rgba(57,255,20,0.5)]"
+                    style={{ width: '0%' }}
+                  ></div>
                 </div>
-                <p className="text-xs text-slate-500 mt-3">Based on last 12 sessions</p>
+                <p className="text-xs text-slate-500 mt-3">{t.dashboard.stats.basedOn.replace('{count}', history.length.toString())}</p>
               </div>
 
               <div className="bg-gradient-to-br from-surface-dark to-surface-darker border border-white/5 rounded-2xl p-6 relative overflow-hidden">
                 <div className="relative z-10">
-                  <h3 className="text-lg font-bold text-white mb-2">AI Tip</h3>
+                  <h3 className="text-lg font-bold text-white mb-2">{t.dashboard.stats.aiTip}</h3>
                   <p className="text-slate-300 text-sm mb-4">
                     Your squat depth has improved, but watch your knee alignment on the ascent.
                   </p>
                   <Link href="/history" className="text-primary text-sm font-bold flex items-center gap-1 hover:gap-2 transition-all">
-                    See details <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                    {t.dashboard.stats.seeDetails} <span className="material-symbols-outlined text-sm">arrow_forward</span>
                   </Link>
                 </div>
                 <span className="material-symbols-outlined absolute -bottom-4 -right-4 text-9xl text-white/5 rotate-[-15deg]">
@@ -134,77 +208,46 @@ export default function Home() {
             </div>
 
             {/* Right Column: Recent Scans List */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 animate-fade-up opacity-0">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-white">Recent Scans</h3>
+                <h3 className="text-xl font-bold text-white">{t.dashboard.stats.recentScans}</h3>
                 <Link href="/history" className="text-sm text-slate-400 hover:text-white transition-colors">
-                  View all
+                  {t.dashboard.stats.viewAll}
                 </Link>
               </div>
 
               <div className="flex flex-col gap-3">
-                {/* Card 1 */}
-                <div className="group flex items-center justify-between p-4 bg-surface-dark hover:bg-white/5 border border-white/5 hover:border-primary/30 rounded-xl transition-all cursor-pointer">
-                  <div className="flex items-center gap-4">
-                    <div className="size-12 rounded-lg bg-surface-darker flex items-center justify-center border border-white/10 group-hover:border-primary/50 text-white group-hover:text-primary transition-colors">
-                      <span className="material-symbols-outlined">fitness_center</span>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-white group-hover:text-primary transition-colors">Deadlift</h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-slate-400">Today, 09:41 AM</span>
-                        <span className="size-1 rounded-full bg-slate-600"></span>
-                        <span className="text-xs text-green-400">Low Injury Risk</span>
+                {history.length === 0 ? (
+                  <div className="text-slate-400 p-4 border border-white/5 rounded-xl text-center">{t.dashboard.stats.noSessions}</div>
+                ) : history.slice(0, 3).map((session, i) => (
+                  <Link href="/history/detail" key={session.id || i} className="group flex items-center justify-between p-4 bg-surface-dark hover:bg-white/5 border border-white/5 hover:border-primary/30 rounded-xl transition-all cursor-pointer">
+                    <div className="flex items-center gap-4">
+                      <div className="size-12 rounded-lg bg-surface-darker flex items-center justify-center border border-white/10 group-hover:border-primary/50 text-white group-hover:text-primary transition-colors">
+                        <span className="material-symbols-outlined">
+                          {session.exercise === 'squat' ? 'accessibility_new' : session.exercise === 'deadlift' ? 'fitness_center' : 'sports_gymnastics'}
+                        </span>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-white group-hover:text-primary transition-colors capitalize">{session.exercise}</h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-slate-400">
+                            {new Date(session.timestamp).toLocaleDateString()}
+                          </span>
+                          <span className="size-1 rounded-full bg-slate-600"></span>
+                          {session.errorCount === 0 ? (
+                            <span className="text-xs text-primary">{t.dashboard.stats.flawlessSet}</span>
+                          ) : (
+                            <span className="text-xs text-orange-400">{session.errorCount} {t.dashboard.stats.mistakesDetected}</span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className="font-mono text-lg font-bold text-white">94%</span>
-                    <span className="text-xs text-slate-500">accuracy</span>
-                  </div>
-                </div>
-
-                {/* Card 2 */}
-                <div className="group flex items-center justify-between p-4 bg-surface-dark hover:bg-white/5 border border-white/5 hover:border-primary/30 rounded-xl transition-all cursor-pointer">
-                  <div className="flex items-center gap-4">
-                    <div className="size-12 rounded-lg bg-surface-darker flex items-center justify-center border border-white/10 group-hover:border-primary/50 text-white group-hover:text-primary transition-colors">
-                      <span className="material-symbols-outlined">accessibility_new</span>
+                    <div className="flex flex-col items-end">
+                      <span className={`font-mono text-lg font-bold ${session.avgScore > 90 ? 'text-primary' : 'text-white'}`}>{session.avgScore}%</span>
+                      <span className="text-xs text-slate-500">{t.dashboard.stats.accuracy}</span>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-white group-hover:text-primary transition-colors">Back Squat</h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-slate-400">Yesterday, 4:20 PM</span>
-                        <span className="size-1 rounded-full bg-slate-600"></span>
-                        <span className="text-xs text-primary">PB Depth</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className="font-mono text-lg font-bold text-white">92%</span>
-                    <span className="text-xs text-slate-500">accuracy</span>
-                  </div>
-                </div>
-
-                {/* Card 3 */}
-                <div className="group flex items-center justify-between p-4 bg-surface-dark hover:bg-surface-dark-hover border border-white/5 hover:border-primary/30 rounded-xl transition-all cursor-pointer shadow-sm">
-                  <div className="flex items-center gap-4">
-                    <div className="size-12 rounded-lg bg-surface-darker flex items-center justify-center border border-white/10 group-hover:border-primary/50 text-white group-hover:text-primary transition-colors">
-                      <span className="material-symbols-outlined">sports_gymnastics</span>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-white group-hover:text-primary transition-colors">Bench Press</h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-slate-400">Oct 24, 6:00 PM</span>
-                        <span className="size-1 rounded-full bg-slate-600"></span>
-                        <span className="text-xs text-orange-400">Elbow Flare Detected</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className="font-mono text-lg font-bold text-white">78%</span>
-                    <span className="text-xs text-slate-500">accuracy</span>
-                  </div>
-                </div>
+                  </Link>
+                ))}
               </div>
             </div>
           </div>

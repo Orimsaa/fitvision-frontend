@@ -2,10 +2,37 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const { t } = useLanguage();
+
+    const defaultAvatar = 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuA27nj0lO-CFiCbHV5WY7JdyYn0KZLxAcFyJfVlyHj0s8t2zkyMdrnJdKOFlpT3OeeTkIaYinssvIiwQVZd-PEonFIwPa0-_FQUoPGOdgmCFFxMPIPpveKaTcSIyqLZWjySB7ZZu58OHONYt9rfPco2VI4-bPPW5TsvxabFyx6CrLU-w9Aur278J-pkfDic-F8A-M_pTy88Hs1oo_SyobbHM0vf6Y9bWuieMdksrqbjtj4dqH1_j_Y_XnEUItFA9x07ONGY8FTeK-H6")';
+    const [avatar, setAvatar] = useState(defaultAvatar);
+    const [displayName, setDisplayName] = useState("Alex Morgan");
+
+    useEffect(() => {
+        const updateProfile = () => {
+            const storedAvatar = localStorage.getItem('fitvision_avatar');
+            if (storedAvatar) setAvatar(`url('${storedAvatar}')`);
+
+            const storedName = localStorage.getItem('fitvision_display_name');
+            if (storedName) setDisplayName(storedName);
+        };
+
+        // Initial load
+        updateProfile();
+
+        // Listen for custom events from Settings page
+        window.addEventListener('profileUpdated', updateProfile);
+        window.addEventListener('avatarUpdated', updateProfile);
+        return () => {
+            window.removeEventListener('profileUpdated', updateProfile);
+            window.removeEventListener('avatarUpdated', updateProfile);
+        };
+    }, []);
 
     if (pathname?.startsWith("/camera")) {
         return null;
@@ -45,7 +72,7 @@ export default function Sidebar() {
                             href="/"
                         >
                             <span className={`material-symbols-outlined ${pathname === "/" ? "filled" : ""}`}>home</span>
-                            <span className="font-medium">Home</span>
+                            <span className="font-medium">{t.nav.home}</span>
                         </Link>
                         <Link
                             className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${pathname === "/history"
@@ -55,7 +82,7 @@ export default function Sidebar() {
                             href="/history"
                         >
                             <span className={`material-symbols-outlined ${pathname === "/history" ? "filled" : ""}`}>history</span>
-                            <span className="font-medium">History</span>
+                            <span className="font-medium">{t.nav.history}</span>
                         </Link>
                         <Link
                             className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${pathname?.startsWith("/camera") ? "bg-primary/10 text-primary" : "text-slate-400 hover:text-white hover:bg-white/5"
@@ -63,7 +90,7 @@ export default function Sidebar() {
                             href="/camera"
                         >
                             <span className="material-symbols-outlined">videocam</span>
-                            <span className="font-medium">AI Camera</span>
+                            <span className="font-medium">{t.nav.camera}</span>
                         </Link>
                         <Link
                             className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${pathname === "/summary"
@@ -73,7 +100,7 @@ export default function Sidebar() {
                             href="/summary"
                         >
                             <span className={`material-symbols-outlined ${pathname === "/summary" ? "filled" : ""}`}>analytics</span>
-                            <span className="font-medium">Analysis</span>
+                            <span className="font-medium">{t.nav.stats}</span>
                         </Link>
                         <Link
                             className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${pathname === "/settings"
@@ -83,7 +110,7 @@ export default function Sidebar() {
                             href="/settings"
                         >
                             <span className={`material-symbols-outlined ${pathname === "/settings" ? "filled" : ""}`}>settings</span>
-                            <span className="font-medium">Settings</span>
+                            <span className="font-medium">{t.nav.settings}</span>
                         </Link>
                     </div>
                 </div>
@@ -91,12 +118,11 @@ export default function Sidebar() {
                     <div
                         className="bg-center bg-no-repeat bg-cover rounded-full size-10 ring-2 ring-primary/50"
                         style={{
-                            backgroundImage:
-                                'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDXffCakVRarFoNQFrA4K7x22dBozfhsCf4wktXzY1OZGVk5RKCXqRMx3JZRNx5BOv0nhv-CDxFys6quSum4CCeuuY5AE-2K2rF2PG-9ov-2Ki_8to7wSgmJqgIEy6KqiG9FC5kM8TulNc_0SIfhfTmBbtAboV1n7XkUpJOFYw2bz1oA5SR0aQATkET1hR6-eOseSCjj6TcARG9zS_7JyYXM--QkV1y9hlqKvVOGTPt25uOtAn4yeH_dVyi6fcQlIFUqrWg1ZFVVTpt")',
+                            backgroundImage: avatar,
                         }}
                     ></div>
-                    <div className="flex flex-col">
-                        <span className="text-sm font-bold text-white leading-tight">Alex Morgan</span>
+                    <div className="flex flex-col flex-1 overflow-hidden">
+                        <span className="text-sm font-bold text-white leading-tight truncate" title={displayName}>{displayName}</span>
                     </div>
                 </div>
             </nav>
@@ -109,7 +135,7 @@ export default function Sidebar() {
                         }`}
                 >
                     <span className="material-symbols-outlined">home</span>
-                    <span className="text-[10px] font-medium">Home</span>
+                    <span className="text-[10px] font-medium">{t.nav.home}</span>
                 </Link>
                 <Link
                     href="/history"
@@ -117,7 +143,7 @@ export default function Sidebar() {
                         }`}
                 >
                     <span className="material-symbols-outlined">history</span>
-                    <span className="text-[10px] font-medium">History</span>
+                    <span className="text-[10px] font-medium">{t.nav.history}</span>
                 </Link>
                 {/* Center Floating Action Button Style */}
                 <div className="relative -top-6">
@@ -134,7 +160,7 @@ export default function Sidebar() {
                         }`}
                 >
                     <span className="material-symbols-outlined">analytics</span>
-                    <span className="text-[10px] font-medium">Stats</span>
+                    <span className="text-[10px] font-medium">{t.nav.stats}</span>
                 </Link>
                 <Link
                     href="/settings"
@@ -142,7 +168,7 @@ export default function Sidebar() {
                         }`}
                 >
                     <span className="material-symbols-outlined">settings</span>
-                    <span className="text-[10px] font-medium">Settings</span>
+                    <span className="text-[10px] font-medium">{t.nav.settings}</span>
                 </Link>
             </nav>
         </>

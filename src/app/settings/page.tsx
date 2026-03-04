@@ -1,290 +1,217 @@
 "use client";
 
+import React, { useEffect, useState, useRef } from "react";
+import Link from "next/link";
+import anime from "animejs";
 import DashboardLayout from "@/components/DashboardLayout";
-import React, { useState } from "react";
-
-type Tab = "profile" | "notifications" | "preferences" | "privacy";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function SettingsPage() {
-    const [activeTab, setActiveTab] = useState<Tab>("profile");
-    const [isSaving, setIsSaving] = useState(false);
-    const [savedAlert, setSavedAlert] = useState(false);
+    const { t } = useLanguage();
+    const defaultAvatar = "https://lh3.googleusercontent.com/aida-public/AB6AXuCiDJDucCCwOhZ9OpV8-UdGLCPzxh-5ylxVUG8QTllTDlEQtaL3zmUWzNkHd21gwPbtArPVyhC-1byXGXOyKl9ZFcNaSJQo7EOjl-Bv-RIpuh89mgXdonjPnj6S03XXakL_ElgpXLqfTVCVWfUyC5nyxMVryUq5ZuwkSIFoXmZjrdZlwvxVoaQuQ4ahJf_hRS2ZAaWmpEOVjzige6RbE9TWNjXQYQOoVax8QzkVsUW2FUXVBg9R6lfGjznTlKZ5rGQNCpFPnoOWp3U";
+    const [profileImage, setProfileImage] = useState(defaultAvatar);
+    const [displayName, setDisplayName] = useState("Alex Morgan");
+    const [height, setHeight] = useState("185");
+    const [weight, setWeight] = useState("82");
 
-    // Mock settings state
-    const [units, setUnits] = useState("kg");
-    const [theme, setTheme] = useState("dark");
-    const [pushNotifs, setPushNotifs] = useState(true);
-    const [emailNotifs, setEmailNotifs] = useState(false);
+    // Check if saving is showing feedback
+    const [showSavedFeedback, setShowSavedFeedback] = useState(false);
 
-    const handleSave = () => {
-        setIsSaving(true);
-        setTimeout(() => {
-            setIsSaving(false);
-            setSavedAlert(true);
-            setTimeout(() => setSavedAlert(false), 3000);
-        }, 800);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        const storedAvatar = localStorage.getItem('fitvision_avatar');
+        if (storedAvatar) setProfileImage(storedAvatar);
+
+        const storedName = localStorage.getItem('fitvision_display_name');
+        if (storedName) setDisplayName(storedName);
+
+        const storedHeight = localStorage.getItem('fitvision_height');
+        if (storedHeight) setHeight(storedHeight);
+
+        const storedWeight = localStorage.getItem('fitvision_weight');
+        if (storedWeight) setWeight(storedWeight);
+
+        // Entrance animation
+        anime({
+            targets: '.animate-slide-up',
+            opacity: [0, 1],
+            translateY: [20, 0],
+            duration: 600,
+            easing: 'easeOutExpo',
+            delay: anime.stagger(100, { start: 100 })
+        });
+    }, []);
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64String = reader.result as string;
+                setProfileImage(base64String);
+                localStorage.setItem('fitvision_avatar', base64String);
+                window.dispatchEvent(new Event('avatarUpdated'));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleSaveChanges = () => {
+        localStorage.setItem('fitvision_display_name', displayName);
+        localStorage.setItem('fitvision_height', height);
+        localStorage.setItem('fitvision_weight', weight);
+
+        window.dispatchEvent(new Event('profileUpdated'));
+
+        // Show quick feedback
+        setShowSavedFeedback(true);
+        setTimeout(() => setShowSavedFeedback(false), 2000);
     };
 
     return (
         <DashboardLayout>
-            <div className="max-w-[1000px] mx-auto p-6 md:p-10 flex flex-col gap-8 pb-32">
-                {/* Premium Header Section */}
-                <div className="flex flex-col gap-2 mb-2">
-                    <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 flex items-center gap-3">
-                        <span className="material-symbols-outlined text-primary text-4xl md:text-5xl drop-shadow-[0_0_12px_rgba(57,255,20,0.4)]">settings</span>
-                        Settings
-                    </h1>
-                    <p className="text-slate-400 font-medium flex items-center gap-2">
-                        <span className="material-symbols-outlined text-primary/80 text-sm">manage_accounts</span>
-                        Manage your profile, preferences, and account details.
-                    </p>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                    {/* Sidebar Nav for Settings */}
-                    <div className="lg:col-span-1 flex flex-col gap-2">
-                        <button
-                            onClick={() => setActiveTab("profile")}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left ${activeTab === "profile"
-                                ? "bg-primary/10 text-primary border border-primary/20 shadow-inner"
-                                : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
-                                }`}
-                        >
-                            <span className="material-symbols-outlined">person</span>
-                            Profile
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("notifications")}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left ${activeTab === "notifications"
-                                ? "bg-primary/10 text-primary border border-primary/20 shadow-inner"
-                                : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
-                                }`}
-                        >
-                            <span className="material-symbols-outlined">notifications</span>
-                            Notifications
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("preferences")}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left ${activeTab === "preferences"
-                                ? "bg-primary/10 text-primary border border-primary/20 shadow-inner"
-                                : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
-                                }`}
-                        >
-                            <span className="material-symbols-outlined">tune</span>
-                            Preferences
-                        </button>
-                        <button
-                            onClick={() => setActiveTab("privacy")}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left ${activeTab === "privacy"
-                                ? "bg-primary/10 text-primary border border-primary/20 shadow-inner"
-                                : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
-                                }`}
-                        >
-                            <span className="material-symbols-outlined">lock</span>
-                            Privacy & Security
-                        </button>
-                    </div>
-
-                    {/* Main Settings Content */}
-                    <div className="lg:col-span-3 flex flex-col gap-6">
-                        {/* Tab Content Wrappers */}
-                        <div className="bg-surface-dark border border-white/5 rounded-2xl p-6 md:p-8 flex flex-col gap-8 relative overflow-hidden min-h-[400px]">
-                            {/* Decorative Top Border */}
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/80 to-transparent opacity-80"></div>
-
-                            {activeTab === "profile" && (
-                                <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    <div>
-                                        <h2 className="text-xl font-bold text-white mb-1">Profile Information</h2>
-                                        <p className="text-sm text-slate-400">Update your personal details here.</p>
-                                    </div>
-
-                                    <div className="flex items-center gap-6">
-                                        <div
-                                            className="bg-center bg-no-repeat bg-cover rounded-full size-24 ring-4 ring-primary/20 shadow-neon shrink-0"
-                                            style={{
-                                                backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDXffCakVRarFoNQFrA4K7x22dBozfhsCf4wktXzY1OZGVk5RKCXqRMx3JZRNx5BOv0nhv-CDxFys6quSum4CCeuuY5AE-2K2rF2PG-9ov-2Ki_8to7wSgmJqgIEy6KqiG9FC5kM8TulNc_0SIfhfTmBbtAboV1n7XkUpJOFYw2bz1oA5SR0aQATkET1hR6-eOseSCjj6TcARG9zS_7JyYXM--QkV1y9hlqKvVOGTPt25uOtAn4yeH_dVyi6fcQlIFUqrWg1ZFVVTpt")',
-                                            }}
-                                        ></div>
-                                        <div className="flex flex-col gap-3">
-                                            <button className="px-5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-medium transition-colors text-sm border border-white/5">
-                                                Change Avatar
-                                            </button>
-                                            <button className="text-slate-400 hover:text-red-400 transition-colors text-sm text-left">
-                                                Remove
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="flex flex-col gap-2">
-                                            <label className="text-sm font-medium text-slate-400">First Name</label>
-                                            <input
-                                                type="text"
-                                                defaultValue="Alex"
-                                                className="bg-background-dark border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all hover:border-white/20"
-                                            />
-                                        </div>
-                                        <div className="flex flex-col gap-2">
-                                            <label className="text-sm font-medium text-slate-400">Last Name</label>
-                                            <input
-                                                type="text"
-                                                defaultValue="Morgan"
-                                                className="bg-background-dark border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all hover:border-white/20"
-                                            />
-                                        </div>
-                                        <div className="flex flex-col gap-2 md:col-span-2">
-                                            <label className="text-sm font-medium text-slate-400">Email Address</label>
-                                            <input
-                                                type="email"
-                                                defaultValue="alex.morgan@fitvision.app"
-                                                className="bg-background-dark border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all hover:border-white/20"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === "notifications" && (
-                                <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    <div>
-                                        <h2 className="text-xl font-bold text-white mb-1">Notifications</h2>
-                                        <p className="text-sm text-slate-400">Control how you receive alerts and updates.</p>
-                                    </div>
-
-                                    <div className="flex flex-col gap-6">
-                                        <div className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-background-dark/50 hover:bg-background-dark transition-colors">
-                                            <div className="flex flex-col">
-                                                <span className="font-bold text-white">Push Notifications</span>
-                                                <span className="text-sm text-slate-400">Receive alerts on your device for workout reminders.</span>
-                                            </div>
-                                            {/* Custom Toggle */}
-                                            <button
-                                                onClick={() => setPushNotifs(!pushNotifs)}
-                                                className={`w-12 h-6 rounded-full transition-colors relative flex items-center ${pushNotifs ? "bg-primary" : "bg-slate-700"}`}
-                                            >
-                                                <span className={`w-4 h-4 bg-white rounded-full absolute transition-transform ${pushNotifs ? "translate-x-7" : "translate-x-1"}`}></span>
-                                            </button>
-                                        </div>
-
-                                        <div className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-background-dark/50 hover:bg-background-dark transition-colors">
-                                            <div className="flex flex-col">
-                                                <span className="font-bold text-white">Email Digests</span>
-                                                <span className="text-sm text-slate-400">Receive weekly summaries of your form progress.</span>
-                                            </div>
-                                            {/* Custom Toggle */}
-                                            <button
-                                                onClick={() => setEmailNotifs(!emailNotifs)}
-                                                className={`w-12 h-6 rounded-full transition-colors relative flex items-center ${emailNotifs ? "bg-primary" : "bg-slate-700"}`}
-                                            >
-                                                <span className={`w-4 h-4 bg-white rounded-full absolute transition-transform ${emailNotifs ? "translate-x-7" : "translate-x-1"}`}></span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === "preferences" && (
-                                <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    <div>
-                                        <h2 className="text-xl font-bold text-white mb-1">App Preferences</h2>
-                                        <p className="text-sm text-slate-400">Customize your app experience.</p>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="flex flex-col gap-2">
-                                            <label className="text-sm font-medium text-slate-400">Weight Units</label>
-                                            <div className="relative">
-                                                <select
-                                                    value={units}
-                                                    onChange={(e) => setUnits(e.target.value)}
-                                                    className="appearance-none bg-background-dark border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all hover:border-white/20 w-full font-medium"
-                                                >
-                                                    <option value="kg">Kilograms (kg)</option>
-                                                    <option value="lbs">Pounds (lbs)</option>
-                                                </select>
-                                                <span className="material-symbols-outlined absolute right-3 top-3 text-slate-400 pointer-events-none">expand_more</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex flex-col gap-2">
-                                            <label className="text-sm font-medium text-slate-400">Theme</label>
-                                            <div className="relative">
-                                                <select
-                                                    value={theme}
-                                                    onChange={(e) => setTheme(e.target.value)}
-                                                    className="appearance-none bg-background-dark border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all hover:border-white/20 w-full font-medium"
-                                                >
-                                                    <option value="dark">Dark Mode (Default)</option>
-                                                    <option value="system">System Default</option>
-                                                </select>
-                                                <span className="material-symbols-outlined absolute right-3 top-3 text-slate-400 pointer-events-none">expand_more</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === "privacy" && (
-                                <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    <div>
-                                        <h2 className="text-xl font-bold text-white mb-1">Privacy & Security</h2>
-                                        <p className="text-sm text-slate-400">Keep your account and camera data secure.</p>
-                                    </div>
-
-                                    <div className="flex flex-col gap-4">
-                                        <button className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-background-dark/50 hover:bg-background-dark transition-colors text-left group">
-                                            <div className="flex items-center gap-3">
-                                                <span className="material-symbols-outlined text-slate-400 group-hover:text-white transition-colors">key</span>
-                                                <span className="font-bold text-white">Change Password</span>
-                                            </div>
-                                            <span className="material-symbols-outlined text-slate-500">chevron_right</span>
-                                        </button>
-                                        <button className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-background-dark/50 hover:bg-background-dark transition-colors text-left group">
-                                            <div className="flex items-center gap-3">
-                                                <span className="material-symbols-outlined text-slate-400 group-hover:text-white transition-colors">visibility_off</span>
-                                                <span className="font-bold text-white">Camera Data Usage</span>
-                                            </div>
-                                            <span className="material-symbols-outlined text-slate-500">chevron_right</span>
-                                        </button>
-                                        <div className="flex flex-col gap-1 px-4 text-sm text-slate-400 mt-2 mb-4">
-                                            <p>Your camera data is processed securely.</p>
-                                        </div>
-                                        <button className="flex items-center justify-between p-4 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 transition-colors text-left mt-4 group">
-                                            <div className="flex items-center gap-3">
-                                                <span className="material-symbols-outlined text-red-500">delete_forever</span>
-                                                <span className="font-bold text-red-500">Delete Account</span>
-                                            </div>
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
+            <div className="flex flex-col min-h-screen w-full overflow-x-hidden font-display">
+                <main className="flex-1 w-full p-6 lg:p-10">
+                    <div className="max-w-4xl mx-auto space-y-10">
+                        {/* Title Section */}
+                        <div className="flex flex-col gap-2 animate-slide-up opacity-0">
+                            <h1 className="text-slate-100 text-4xl font-black leading-tight tracking-tight uppercase italic flex items-center gap-4">
+                                {t.settings.title} <span className="text-primary text-xl material-symbols-outlined">settings_accessibility</span>
+                            </h1>
+                            <p className="text-slate-400 text-base font-normal max-w-xl">
+                                {t.settings.subtitle} <span className="text-primary">{t.settings.subtitleHighlight}</span> {t.settings.subtitleEnd}
+                            </p>
                         </div>
 
-                        {/* Save Actions Row */}
-                        <div className="flex flex-col md:flex-row items-center justify-end gap-6">
-                            {/* Save Actions */}
-                            <div className="flex justify-end gap-3 w-full md:w-auto items-center">
-                                {savedAlert && (
-                                    <div className="text-primary text-sm font-bold flex items-center gap-1 animate-in slide-in-from-right fade-in px-3">
-                                        <span className="material-symbols-outlined text-[18px]">check_circle</span>
-                                        Saved
+                        {/* Profile Section */}
+                        <section className="glass rounded-2xl p-8 space-y-8 animate-slide-up opacity-0">
+                            <div className="flex items-center gap-6 border-b border-primary/10 pb-6">
+                                <input
+                                    type="file"
+                                    className="hidden"
+                                    accept="image/*"
+                                    ref={fileInputRef}
+                                    onChange={handleImageUpload}
+                                />
+                                <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                                    <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-28 border-2 border-primary ring-4 ring-primary/10 shadow-[0_0_20px_rgba(60,249,26,0.2)]"
+                                        title="User avatar"
+                                        style={{ backgroundImage: `url('${profileImage}')` }}>
                                     </div>
-                                )}
-                                <button className="px-5 py-3 rounded-xl font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-colors hidden sm:block">
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleSave}
-                                    disabled={isSaving}
-                                    className="px-8 py-3 rounded-xl font-bold bg-primary text-black hover:bg-primary/90 shadow-[0_0_15px_rgba(57,255,20,0.2)] hover:shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed w-full md:w-auto justify-center"
-                                >
-                                    {isSaving ? "Saving..." : "Save Changes"}
-                                </button>
+                                    <div className="absolute inset-0 bg-[#12230f]/60 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                        <span className="material-symbols-outlined text-primary">edit</span>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-3">
+                                    <h3 className="text-slate-100 text-xl font-bold tracking-tight">{t.settings.biometric.title}</h3>
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="flex items-center justify-center gap-2 px-5 py-2.5 w-fit rounded-lg bg-primary text-[#12230f] text-sm font-black uppercase tracking-wider hover:brightness-110 transition-all">
+                                        <span className="material-symbols-outlined text-lg">upload</span>
+                                        <span>{t.settings.biometric.uploadPhoto}</span>
+                                    </button>
+                                </div>
                             </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-primary/60 pl-1">{t.settings.biometric.displayName}</label>
+                                    <input
+                                        className="w-full glass bg-[#12230f]/40 border-primary/20 rounded-xl px-4 py-3 text-slate-100 focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-slate-600 outline-none"
+                                        placeholder="e.g. Neo_Fitness"
+                                        type="text"
+                                        value={displayName}
+                                        onChange={(e) => setDisplayName(e.target.value)}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-xs font-black uppercase tracking-widest text-primary/60 pl-1">{t.settings.biometric.height}</label>
+                                        <input
+                                            className="w-full glass bg-[#12230f]/40 border-primary/20 rounded-xl px-4 py-3 text-slate-100 focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                                            type="number"
+                                            value={height}
+                                            onChange={(e) => setHeight(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-xs font-black uppercase tracking-widest text-primary/60 pl-1">{t.settings.biometric.weight}</label>
+                                        <input
+                                            className="w-full glass bg-[#12230f]/40 border-primary/20 rounded-xl px-4 py-3 text-slate-100 focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                                            type="number"
+                                            value={weight}
+                                            onChange={(e) => setWeight(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* AI Preferences Section */}
+                        <section className="space-y-6 animate-slide-up opacity-0">
+                            <div className="flex items-center gap-3">
+                                <span className="material-symbols-outlined text-primary">psychology</span>
+                                <h2 className="text-slate-100 text-xl font-black uppercase italic">{t.settings.aiPreferences.title}</h2>
+                            </div>
+                            <div className="glass rounded-2xl divide-y divide-primary/10 overflow-hidden">
+                                {/* Preference 1 */}
+                                <div className="flex items-center justify-between p-6 hover:bg-white/5 transition-colors">
+                                    <div className="flex flex-col gap-1">
+                                        <p className="text-slate-100 font-bold text-base">{t.settings.aiPreferences.voice.title}</p>
+                                        <p className="text-slate-400 text-sm">{t.settings.aiPreferences.voice.desc}</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input defaultChecked className="sr-only peer" type="checkbox" />
+                                        <div className="w-12 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                    </label>
+                                </div>
+                                {/* Preference 2 */}
+                                <div className="flex items-center justify-between p-6 hover:bg-white/5 transition-colors">
+                                    <div className="flex flex-col gap-1">
+                                        <p className="text-slate-100 font-bold text-base">{t.settings.aiPreferences.autoSave.title}</p>
+                                        <p className="text-slate-400 text-sm">{t.settings.aiPreferences.autoSave.desc}</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input defaultChecked className="sr-only peer" type="checkbox" />
+                                        <div className="w-12 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                    </label>
+                                </div>
+                                {/* Preference 3 */}
+                                <div className="flex items-center justify-between p-6 hover:bg-white/5 transition-colors">
+                                    <div className="flex flex-col gap-1">
+                                        <p className="text-slate-100 font-bold text-base">{t.settings.aiPreferences.countdown.title}</p>
+                                        <p className="text-slate-400 text-sm">{t.settings.aiPreferences.countdown.desc}</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input defaultChecked className="sr-only peer" type="checkbox" />
+                                        <div className="w-12 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Bottom Action Buttons */}
+                        <div className="flex items-center gap-4 pt-6 animate-slide-up opacity-0 relative">
+                            <button
+                                onClick={handleSaveChanges}
+                                className="flex-1 md:flex-none md:w-48 bg-primary hover:shadow-[0_0_20px_#3cf91a55] text-[#12230f] px-8 py-4 rounded-xl font-black uppercase tracking-widest transition-all text-sm active:scale-95">
+                                {showSavedFeedback ? (
+                                    <div className="flex items-center justify-center gap-2">
+                                        <span className="material-symbols-outlined text-sm">check</span>
+                                        SAVED
+                                    </div>
+                                ) : (
+                                    t.settings.actions.saveChanges
+                                )}
+                            </button>
+                            <Link href="/" className="flex justify-center flex-1 md:flex-none md:w-32 glass border-slate-700 hover:border-slate-500 text-slate-300 px-8 py-4 rounded-xl font-bold uppercase tracking-widest transition-all text-sm active:scale-95">
+                                {t.settings.actions.cancel}
+                            </Link>
                         </div>
                     </div>
-                </div>
+                    {/* Footer Spacer */}
+                    <div className="h-20"></div>
+                </main>
             </div>
         </DashboardLayout>
     );
