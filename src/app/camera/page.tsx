@@ -246,7 +246,7 @@ function CameraContent() {
                         }
                         // ----------------------------------
 
-                        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://fitvision-api-hw7f.onrender.com";
+                        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://fitvision-ap.onrender.com";
 
                         // Fire and forget! Do not await this block in the main onResults thread to avoid freezing the camera canvas.
                         (async () => {
@@ -328,6 +328,10 @@ function CameraContent() {
                                             sessionStorage.setItem('fitvision_errors', JSON.stringify([...prevErrors, errorRecord]));
                                         }
                                     }
+                                } else {
+                                    const errText = await res.text();
+                                    console.error(`API Error ${res.status}:`, errText);
+                                    setFeedbackDetail(`Backend Error: ${res.status}`);
                                 }
                             } catch (e) {
                                 console.error("AI Predict Error", e);
