@@ -9,6 +9,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 export default function ErrorReplayPage() {
     const router = useRouter();
     const [errorData, setErrorData] = useState<{ url: string, title: string, detail: string, time: string } | null>(null);
+    const [hasChecked, setHasChecked] = useState(false);
 
     useEffect(() => {
         // Load real data from session storage
@@ -16,6 +17,7 @@ export default function ErrorReplayPage() {
         if (stored) {
             setErrorData(JSON.parse(stored));
         }
+        setHasChecked(true);
 
         // Entrance animation
         anime({
@@ -28,13 +30,25 @@ export default function ErrorReplayPage() {
         });
     }, []);
 
-    if (!errorData) {
+    if (!hasChecked) {
         return (
             <DashboardLayout>
                 <div className="flex-1 max-w-5xl mx-auto w-full px-5 py-20 flex flex-col items-center justify-center text-center">
                     <span className="material-symbols-outlined text-6xl text-slate-700 mb-4 animate-pulse">hourglass_empty</span>
                     <h2 className="text-xl font-bold text-slate-300">Loading Analysis...</h2>
-                    <button onClick={() => router.back()} className="mt-6 text-primary hover:underline font-bold">Return to Summary</button>
+                </div>
+            </DashboardLayout>
+        );
+    }
+
+    if (!errorData) {
+        return (
+            <DashboardLayout>
+                <div className="flex-1 max-w-5xl mx-auto w-full px-5 py-20 flex flex-col items-center justify-center text-center">
+                    <span className="material-symbols-outlined text-6xl text-red-500/50 mb-4">error_outline</span>
+                    <h2 className="text-2xl font-bold text-white mb-2">No Analysis Data Found</h2>
+                    <p className="text-slate-400 max-w-md">Please select a specific analysis clip from the Summary or History page to view its details.</p>
+                    <button onClick={() => router.push('/history')} className="mt-8 bg-slate-800 hover:bg-slate-700 text-white px-6 py-3 rounded-xl font-bold transition-colors">Go to History</button>
                 </div>
             </DashboardLayout>
         );
