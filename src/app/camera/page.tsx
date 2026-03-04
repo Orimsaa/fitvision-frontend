@@ -438,11 +438,7 @@ function CameraContent() {
                         <span className="font-bold text-sm hidden md:block">Back</span>
                     </Link>
                     <div className="flex items-center gap-2 md:gap-3">
-                        {/* Developer Video Test Upload Button */}
-                        <label className="bg-slate-800/80 hover:bg-slate-700 text-white px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer border border-white/10 flex items-center justify-center transition-colors shadow-lg" title="Upload Pre-recorded Video for testing">
-                            <span className="material-symbols-outlined text-[18px] text-blue-400">upload_file</span>
-                            <input type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} />
-                        </label>
+
 
                         <button
                             onClick={() => setFacingMode(prev => prev === "user" ? "environment" : "user")}
@@ -463,131 +459,193 @@ function CameraContent() {
                     </div>
                 </header>
 
-                {/* Countdown Overlay or Start Button */}
+                {/* ── Onboarding Overlay ── */}
                 {!isTrackingStarted && (
-                    <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                    <div className="absolute inset-0 z-40 flex items-center justify-center bg-gradient-to-b from-black/70 via-black/50 to-black/70 backdrop-blur-sm">
                         {countdown !== null ? (
-                            <div className="text-8xl md:text-9xl font-black text-white drop-shadow-[0_0_30px_rgba(57,255,20,0.8)] animate-ping">
-                                {countdown}
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="text-8xl md:text-9xl font-black text-primary drop-shadow-[0_0_40px_rgba(57,255,20,0.6)] animate-pulse">
+                                    {countdown}
+                                </div>
+                                <p className="text-white/70 text-lg font-medium animate-pulse">Get Ready...</p>
                             </div>
                         ) : (
-                            <button
-                                onClick={() => {
-                                    setCountdown(5);
-                                    let count = 5;
-                                    const timer = setInterval(() => {
-                                        count -= 1;
-                                        if (count > 0) {
-                                            setCountdown(count);
-                                        } else {
-                                            clearInterval(timer);
-                                            setCountdown(null);
-                                            setIsTrackingStarted(true);
-                                            isTrackingStartedRef.current = true;
-                                        }
-                                    }, 1000);
-                                }}
-                                disabled={!isModelReady}
-                                className={`px-10 py-5 rounded-full text-2xl md:text-3xl font-black uppercase tracking-widest shadow-2xl transition-all ${isModelReady ? "bg-primary text-black hover:scale-110 shadow-primary/50 cursor-pointer" : "bg-gray-600 text-gray-300 cursor-not-allowed opacity-70"}`}
-                            >
-                                {isModelReady ? "START WORKOUT" : "WAITING FOR AI..."}
-                            </button>
-                        )}
-                    </div>
-                )}
-
-                <div className="flex-1 border-4 border-dashed border-primary/10 rounded-3xl m-4 pointer-events-none hidden md:block"></div>
-
-                <div className="w-full flex flex-col items-center gap-3 md:gap-6 pb-2 md:pb-4 pointer-events-auto mt-auto">
-                    <div className="w-full max-w-md bg-background-dark/60 md:bg-background-dark/80 backdrop-blur-md md:backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-5 shadow-lg relative overflow-hidden group">
-                        <div className="absolute -top-10 -right-10 w-20 h-20 bg-primary/20 blur-3xl rounded-full"></div>
-                        <div className="flex flex-col gap-2 md:gap-3">
-
-                            <div className="flex justify-between items-center gap-3">
-                                <div className="flex flex-col w-full relative">
-                                    <select
-                                        value={currentExercise}
-                                        onChange={(e) => setCurrentExercise(e.target.value)}
-                                        className="appearance-none bg-black/40 border border-white/10 rounded-xl text-white font-bold py-2 md:py-3 pl-3 md:pl-4 pr-8 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary w-full cursor-pointer transition-all hover:bg-black/60 shadow-inner text-sm md:text-base"
-                                    >
-                                        <option value="benchpress">Bench Press (Tree Model 99.9%)</option>
-                                        <option value="squat">Back Squat (Deep MLP 98.5%)</option>
-                                        <option value="deadlift">Deadlift (Deep MLP 98.1%)</option>
-                                    </select>
-                                    <span className="material-symbols-outlined absolute right-2 md:right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">expand_more</span>
+                            <div className="w-full max-w-sm mx-4 bg-background-dark/90 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl shadow-black/50 p-6 md:p-8 flex flex-col gap-5">
+                                {/* Header */}
+                                <div className="text-center">
+                                    <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-3">
+                                        <span className="material-symbols-outlined text-primary text-sm">smart_toy</span>
+                                        <span className="text-primary text-xs font-bold tracking-wider uppercase">{isModelReady ? "AI Ready" : "Loading AI..."}</span>
+                                    </div>
+                                    <h2 className="text-white text-2xl md:text-3xl font-black tracking-tight">FitVision</h2>
+                                    <p className="text-white/50 text-sm mt-1">Choose your exercise & start analyzing</p>
                                 </div>
 
-                                <div className="shrink-0 w-24 md:w-32">
-                                    <div className="px-2 md:px-3 py-2 md:py-3 bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 rounded-xl text-primary font-bold flex flex-col items-center justify-center shadow-[0_0_15px_rgba(57,255,20,0.15)] min-w-[80px] md:min-w-[100px]">
-                                        <span className="text-[10px] md:text-xs text-primary/80 uppercase tracking-widest leading-none mb-1">Form</span>
-                                        <span className="text-3xl md:text-4xl font-black leading-none">{formScore}<span className="text-xs md:text-sm font-bold">%</span></span>
+                                {/* Exercise Selector */}
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-white/60 text-xs font-bold uppercase tracking-wider">Exercise</label>
+                                    <div className="relative">
+                                        <select
+                                            value={currentExercise}
+                                            onChange={(e) => setCurrentExercise(e.target.value)}
+                                            className="appearance-none w-full bg-white/5 border border-white/10 rounded-xl text-white font-bold py-3 pl-4 pr-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer transition-all hover:bg-white/10 text-base"
+                                        >
+                                            <option value="benchpress">🏋️ Bench Press</option>
+                                            <option value="squat">🦵 Back Squat</option>
+                                            <option value="deadlift">💪 Deadlift</option>
+                                        </select>
+                                        <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">expand_more</span>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className={`flex items-start gap-3 border rounded-xl p-3 md:p-4 ${isGoodForm ? "bg-primary/10 border-primary/30" : "bg-red-500/10 border-red-500/30"}`}>
-                                <span className={`material-symbols-outlined shrink-0 text-2xl md:text-3xl ${isGoodForm ? "text-primary" : "text-red-400"}`}>
-                                    {isGoodForm ? "check_circle" : "warning"}
-                                </span>
-                                <div className="flex flex-col flex-1 min-w-0 justify-center">
-                                    <span className={`font-black text-sm md:text-base truncate ${isGoodForm ? "text-primary" : "text-red-300"}`}>
-                                        {feedbackTitle}
-                                    </span>
-                                    <span className={`${isGoodForm ? "text-primary" : "text-red-200"} text-xs md:text-sm leading-tight opacity-90 line-clamp-2`}>
-                                        {isModelReady ? feedbackDetail : "Warming up AI models... Please stand in frame."}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-2 mt-1">
-                                <div className="flex-1 bg-black/40 rounded-xl p-2 md:p-3 flex items-center justify-center gap-1.5 border border-white/5">
-                                    <span className={`material-symbols-outlined text-lg md:text-xl ${isGoodForm ? "text-primary" : "text-orange-400"}`}>health_and_safety</span>
-                                    <span className="text-xs md:text-sm text-white font-medium whitespace-nowrap">Risk: {isGoodForm ? "Low" : "High"}</span>
-                                </div>
-                                <div className="flex-1 bg-black/40 rounded-xl p-2 md:p-3 flex flex-col items-center justify-center gap-1.5 border border-white/5 relative">
-                                    <div className="flex items-center gap-1">
-                                        <span className="material-symbols-outlined text-blue-400 text-lg md:text-xl">fitness_center</span>
-                                        <span className="text-xs md:text-sm text-white font-medium flex items-center gap-1">
-                                            Reps: <span className="text-blue-400 font-bold text-lg">{currentReps}</span> / {repGoal}
-                                        </span>
-                                    </div>
+                                {/* Rep Goal */}
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-white/60 text-xs font-bold uppercase tracking-wider">Rep Goal: <span className="text-primary">{repGoal}</span></label>
                                     <input
                                         type="range"
                                         min="1"
                                         max="50"
                                         value={repGoal}
                                         onChange={(e) => setRepGoal(Number(e.target.value))}
-                                        className="w-full h-1.5 md:h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#39ff14]"
                                     />
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex flex-col gap-3 mt-1">
+                                    <button
+                                        onClick={() => {
+                                            setCountdown(3);
+                                            let count = 3;
+                                            const timer = setInterval(() => {
+                                                count -= 1;
+                                                if (count > 0) {
+                                                    setCountdown(count);
+                                                } else {
+                                                    clearInterval(timer);
+                                                    setCountdown(null);
+                                                    setIsTrackingStarted(true);
+                                                    isTrackingStartedRef.current = true;
+                                                }
+                                            }, 1000);
+                                        }}
+                                        disabled={!isModelReady}
+                                        className={`w-full py-4 rounded-2xl text-lg font-black uppercase tracking-wider shadow-xl transition-all flex items-center justify-center gap-3 ${isModelReady ? "bg-primary text-black hover:scale-[1.02] hover:shadow-primary/40 active:scale-[0.98] cursor-pointer" : "bg-gray-700 text-gray-400 cursor-not-allowed"}`}
+                                    >
+                                        <span className="material-symbols-outlined text-2xl">{isModelReady ? "videocam" : "hourglass_top"}</span>
+                                        {isModelReady ? "Start Live Camera" : "Loading AI..."}
+                                    </button>
+
+                                    <label className={`w-full py-3.5 rounded-2xl text-base font-bold uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-3 border cursor-pointer ${isModelReady ? "bg-white/5 border-white/15 text-white hover:bg-white/10 hover:border-white/25 active:scale-[0.98]" : "bg-gray-800 border-gray-700 text-gray-500 cursor-not-allowed pointer-events-none"}`}>
+                                        <span className="material-symbols-outlined text-xl text-blue-400">upload_file</span>
+                                        Upload Video File
+                                        <input type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} disabled={!isModelReady} />
+                                    </label>
+                                </div>
+
+                                {/* Tip */}
+                                <p className="text-center text-white/30 text-xs leading-relaxed">
+                                    💡 Stand 2-3 meters from camera for best results
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                <div className="flex-1 border-4 border-dashed border-primary/10 rounded-3xl m-4 pointer-events-none hidden md:block"></div>
+
+                {isTrackingStarted && (
+                    <div className="w-full flex flex-col items-center gap-3 md:gap-6 pb-2 md:pb-4 pointer-events-auto mt-auto">
+                        <div className="w-full max-w-md bg-background-dark/60 md:bg-background-dark/80 backdrop-blur-md md:backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-5 shadow-lg relative overflow-hidden group">
+                            <div className="absolute -top-10 -right-10 w-20 h-20 bg-primary/20 blur-3xl rounded-full"></div>
+                            <div className="flex flex-col gap-2 md:gap-3">
+
+                                <div className="flex justify-between items-center gap-3">
+                                    <div className="flex flex-col w-full relative">
+                                        <select
+                                            value={currentExercise}
+                                            onChange={(e) => setCurrentExercise(e.target.value)}
+                                            className="appearance-none bg-black/40 border border-white/10 rounded-xl text-white font-bold py-2 md:py-3 pl-3 md:pl-4 pr-8 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary w-full cursor-pointer transition-all hover:bg-black/60 shadow-inner text-sm md:text-base"
+                                        >
+                                            <option value="benchpress">Bench Press (Tree Model 99.9%)</option>
+                                            <option value="squat">Back Squat (Deep MLP 98.5%)</option>
+                                            <option value="deadlift">Deadlift (Deep MLP 98.1%)</option>
+                                        </select>
+                                        <span className="material-symbols-outlined absolute right-2 md:right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">expand_more</span>
+                                    </div>
+
+                                    <div className="shrink-0 w-24 md:w-32">
+                                        <div className="px-2 md:px-3 py-2 md:py-3 bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 rounded-xl text-primary font-bold flex flex-col items-center justify-center shadow-[0_0_15px_rgba(57,255,20,0.15)] min-w-[80px] md:min-w-[100px]">
+                                            <span className="text-[10px] md:text-xs text-primary/80 uppercase tracking-widest leading-none mb-1">Form</span>
+                                            <span className="text-3xl md:text-4xl font-black leading-none">{formScore}<span className="text-xs md:text-sm font-bold">%</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className={`flex items-start gap-3 border rounded-xl p-3 md:p-4 ${isGoodForm ? "bg-primary/10 border-primary/30" : "bg-red-500/10 border-red-500/30"}`}>
+                                    <span className={`material-symbols-outlined shrink-0 text-2xl md:text-3xl ${isGoodForm ? "text-primary" : "text-red-400"}`}>
+                                        {isGoodForm ? "check_circle" : "warning"}
+                                    </span>
+                                    <div className="flex flex-col flex-1 min-w-0 justify-center">
+                                        <span className={`font-black text-sm md:text-base truncate ${isGoodForm ? "text-primary" : "text-red-300"}`}>
+                                            {feedbackTitle}
+                                        </span>
+                                        <span className={`${isGoodForm ? "text-primary" : "text-red-200"} text-xs md:text-sm leading-tight opacity-90 line-clamp-2`}>
+                                            {isModelReady ? feedbackDetail : "Warming up AI models... Please stand in frame."}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-2 mt-1">
+                                    <div className="flex-1 bg-black/40 rounded-xl p-2 md:p-3 flex items-center justify-center gap-1.5 border border-white/5">
+                                        <span className={`material-symbols-outlined text-lg md:text-xl ${isGoodForm ? "text-primary" : "text-orange-400"}`}>health_and_safety</span>
+                                        <span className="text-xs md:text-sm text-white font-medium whitespace-nowrap">Risk: {isGoodForm ? "Low" : "High"}</span>
+                                    </div>
+                                    <div className="flex-1 bg-black/40 rounded-xl p-2 md:p-3 flex flex-col items-center justify-center gap-1.5 border border-white/5 relative">
+                                        <div className="flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-blue-400 text-lg md:text-xl">fitness_center</span>
+                                            <span className="text-xs md:text-sm text-white font-medium flex items-center gap-1">
+                                                Reps: <span className="text-blue-400 font-bold text-lg">{currentReps}</span> / {repGoal}
+                                            </span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="1"
+                                            max="50"
+                                            value={repGoal}
+                                            onChange={(e) => setRepGoal(Number(e.target.value))}
+                                            className="w-full h-1.5 md:h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        <Link
+                            href="/summary"
+                            onClick={() => {
+                                const scores = statsRef.current.scores;
+                                const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 100;
+                                const errors = JSON.parse(sessionStorage.getItem('fitvision_errors') || '[]');
+
+                                const sessionData = {
+                                    id: Date.now().toString(),
+                                    exercise: statsRef.current.exerciseName,
+                                    avgScore,
+                                    errorCount: errors.length,
+                                    completedReps: currentReps,
+                                    repGoal: repGoal,
+                                    timestamp: new Date().toISOString()
+                                };
+                                sessionStorage.setItem('fitvision_session_stats', JSON.stringify(sessionData));
+                            }}
+                            className="w-full max-w-md h-14 md:h-16 mt-1 md:mt-2 bg-red-600/90 backdrop-blur-md hover:bg-red-500 active:scale-[0.98] transition-all rounded-2xl text-white font-black text-lg md:text-xl shadow-lg shadow-red-900/40 border border-red-500/50 flex items-center justify-center gap-2 md:gap-3 cursor-pointer mb-2"
+                        >
+                            <span className="material-symbols-outlined text-2xl">stop_circle</span>
+                            END WORKOUT
+                        </Link>
                     </div>
-
-                    <Link
-                        href="/summary"
-                        onClick={() => {
-                            const scores = statsRef.current.scores;
-                            const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 100;
-                            const errors = JSON.parse(sessionStorage.getItem('fitvision_errors') || '[]');
-
-                            const sessionData = {
-                                id: Date.now().toString(),
-                                exercise: statsRef.current.exerciseName,
-                                avgScore,
-                                errorCount: errors.length,
-                                completedReps: currentReps,
-                                repGoal: repGoal,
-                                timestamp: new Date().toISOString()
-                            };
-                            sessionStorage.setItem('fitvision_session_stats', JSON.stringify(sessionData));
-                        }}
-                        className="w-full max-w-md h-14 md:h-16 mt-1 md:mt-2 bg-red-600/90 backdrop-blur-md hover:bg-red-500 active:scale-[0.98] transition-all rounded-2xl text-white font-black text-lg md:text-xl shadow-lg shadow-red-900/40 border border-red-500/50 flex items-center justify-center gap-2 md:gap-3 cursor-pointer mb-2"
-                    >
-                        <span className="material-symbols-outlined text-2xl">stop_circle</span>
-                        END WORKOUT
-                    </Link>
-                </div>
+                )}
             </div>
         </div>
     );
