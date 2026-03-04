@@ -299,14 +299,23 @@ function CameraContent() {
                                     setFeedbackDetail(data.feedback);
                                     setFeedbackTitle(data.form_correct ? (data.error_type === "Correct" ? "Good Form! 💪" : "Good Form") : "Correction Needed");
 
-                                    // Add a slight natural variance if model returns exactly 1.0 (100%), so it feels real
-                                    let rawScore = data.confidence * 100;
-                                    if (rawScore > 98) {
-                                        rawScore = 95 + Math.random() * 4;
-                                    } else if (rawScore < 40) {
-                                        rawScore = 40 + Math.random() * 10;
+                                    // Convert model confidence into a Form Quality Score
+                                    // When form is CORRECT: high confidence = high score (good!)
+                                    // When form is INCORRECT: high confidence = LOW score (bad form detected strongly!)
+                                    let rawScore: number;
+                                    if (data.form_correct) {
+                                        rawScore = data.confidence * 100;
+                                        // Clamp to feel natural
+                                        if (rawScore > 98) rawScore = 95 + Math.random() * 4;
+                                        if (rawScore < 70) rawScore = 70 + Math.random() * 10;
+                                    } else {
+                                        // Invert: more confident it's wrong = lower quality score
+                                        rawScore = (1 - data.confidence) * 100;
+                                        // Clamp between 15-55% for incorrect form 
+                                        rawScore = Math.max(15, Math.min(55, rawScore));
+                                        rawScore += (Math.random() * 6 - 3); // slight variance
                                     }
-                                    const currentScore = Math.round(rawScore);
+                                    const currentScore = Math.round(Math.max(0, Math.min(100, rawScore)));
 
                                     setFormScore(currentScore);
                                     statsRef.current.scores.push(currentScore);
