@@ -192,6 +192,10 @@ function CameraContent() {
                 canvasCtx.save();
                 canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
+                if (results.image) {
+                    canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+                }
+
                 if (results.poseLandmarks) {
                     drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, { color: "#38ff14", lineWidth: 4 });
                     drawLandmarks(canvasCtx, results.poseLandmarks, { color: "#ef4444", lineWidth: 2, radius: 4 });
