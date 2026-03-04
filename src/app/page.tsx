@@ -30,22 +30,7 @@ export default function Home() {
       delay: anime.stagger(150, { start: 100 })
     });
 
-    // Athlete Text Animation (Translated from v4 to v3)
-    anime({
-      targets: '.athlete-char',
-      translateY: [
-        { value: '-2.75rem', duration: 600, easing: 'easeOutExpo' },
-        { value: 0, duration: 800, delay: 100, easing: 'easeOutBounce' }
-      ],
-      rotate: {
-        value: ['-1turn', '0turn'],
-        duration: 1500
-      },
-      delay: anime.stagger(50),
-      easing: 'easeInOutCirc',
-      loop: true,
-      endDelay: 1000
-    });
+    // Athlete Text Animation removed as per user request
 
     // Animated Number Counter for Accuracy
     const finalAccuracy = stored.length > 0 ? Math.round(stored.reduce((acc: any, curr: any) => acc + curr.avgScore, 0) / stored.length) : 0;
