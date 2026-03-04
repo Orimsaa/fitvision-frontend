@@ -22,6 +22,7 @@ function CameraContent() {
     const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
     const [isTrackingStarted, setIsTrackingStarted] = useState(false);
     const [countdown, setCountdown] = useState<number | null>(null);
+    const [currentReps, setCurrentReps] = useState(0);
 
     const exerciseName = currentExercise === "squat" ? "Back Squat" : currentExercise === "deadlift" ? "Deadlift" : "Bench Press";
 
@@ -53,6 +54,7 @@ function CameraContent() {
         setFeedbackTitle("AI Ready");
         setFeedbackDetail("Wait for AI to process form...");
         setFormScore(100);
+        setCurrentReps(0);
     }, [currentExercise]);
 
     useEffect(() => {
@@ -72,6 +74,8 @@ function CameraContent() {
         let isUnmounted = false;
         let frameCount = 0;
         let isPredicting = false; // Prevent overlapping fetch calls
+        let repState = "up";
+        let localRepCount = 0;
 
         const initMediaPipe = async () => {
             if (!videoRef.current || !canvasRef.current) return;
@@ -161,6 +165,26 @@ function CameraContent() {
                         ];
 
                         const exercise = exerciseRef.current;
+
+                        // --- Repetition Counting Engine ---
+                        let mainAngle = 0;
+                        if (exercise === "squat" || exercise === "deadlift") {
+                            mainAngle = (features[6] + features[7]) / 2; // Average Knee Angle
+                        } else if (exercise === "benchpress") {
+                            mainAngle = (features[0] + features[1]) / 2; // Average Elbow Angle
+                        }
+
+                        if (mainAngle > 150) { // Standing or Arms Extended (Top phase)
+                            if (repState === "down") {
+                                localRepCount += 1;
+                                setCurrentReps(localRepCount);
+                            }
+                            repState = "up";
+                        } else if (mainAngle < 100) { // Squatted or Bar at chest (Bottom phase)
+                            repState = "down";
+                        }
+                        // ----------------------------------
+
                         const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://fitvision-api-hw7f.onrender.com";
 
                         // Fire and forget! Do not await this block in the main onResults thread to avoid freezing the camera canvas.
@@ -396,7 +420,7 @@ function CameraContent() {
                                 <div className="flex-1 bg-black/40 rounded-lg p-1.5 md:p-2 flex items-center justify-center gap-1.5 border border-white/5 relative">
                                     <span className="material-symbols-outlined text-blue-400 text-sm md:text-base">fitness_center</span>
                                     <span className="text-[10px] md:text-xs text-white font-medium flex items-center gap-1">
-                                        Reps: <span className="text-blue-400 font-bold">0</span>/
+                                        Reps: <span className="text-blue-400 font-bold">{currentReps}</span>/
                                         <input
                                             type="number"
                                             value={repGoal}
