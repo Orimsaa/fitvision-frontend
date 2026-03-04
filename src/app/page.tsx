@@ -9,6 +9,7 @@ import { useLanguage } from "@/context/LanguageContext";
 export default function Home() {
   const { t } = useLanguage();
   const [exercise, setExercise] = useState<"Bench Press" | "Squat" | "Deadlift">("Bench Press");
+  const [repGoal, setRepGoal] = useState<number>(12); // Default to 12 reps
   const [history, setHistory] = useState<any[]>([]);
 
   // Refs for animated number and bar
@@ -137,13 +138,27 @@ export default function Home() {
                 <h2 className="text-2xl md:text-4xl font-bold text-white mb-2 leading-tight">
                   {t.dashboard.actionCard.title}
                 </h2>
-                <p className="text-slate-300 md:text-lg mb-6">
-                  {t.dashboard.actionCard.description}
-                </p>
+                <div className="flex flex-col gap-4 mb-6">
+                  <p className="text-slate-300 md:text-lg">
+                    {t.dashboard.actionCard.description}
+                  </p>
+                  <div className="flex items-center gap-3 bg-black/40 p-3 rounded-xl w-max border border-white/10">
+                    <span className="material-symbols-outlined text-primary">fitness_center</span>
+                    <span className="text-white/80 text-sm font-medium">Repetitions Goal:</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={repGoal}
+                      onChange={(e) => setRepGoal(Number(e.target.value) || 1)}
+                      className="bg-white/10 border-none rounded-lg text-white font-bold w-16 px-2 py-1 text-center focus:ring-1 focus:ring-primary outline-none"
+                    />
+                  </div>
+                </div>
 
                 <div className="flex flex-wrap gap-3">
                   <Link
-                    href={`/camera?model=${exercise.toLowerCase().replace(" ", "")}`}
+                    href={`/camera?model=${exercise.toLowerCase().replace(" ", "")}&reps=${repGoal}`}
                     className="bg-primary hover:bg-primary/90 text-background-dark font-bold py-3 px-6 rounded-xl flex items-center gap-2 transition-colors cursor-pointer"
                   >
                     <span className="material-symbols-outlined">videocam</span>

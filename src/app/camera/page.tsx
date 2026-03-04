@@ -16,9 +16,10 @@ function calculateAngle(a: any, b: any, c: any) {
 function CameraContent() {
     const searchParams = useSearchParams();
     const model = searchParams.get("model")?.toLowerCase() || "benchpress";
+    const repsParam = parseInt(searchParams.get("reps") || "12", 10);
 
     const [currentExercise, setCurrentExercise] = useState(model);
-    const [repGoal, setRepGoal] = useState(12);
+    const [repGoal, setRepGoal] = useState(repsParam);
     const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
     const [isTrackingStarted, setIsTrackingStarted] = useState(false);
     const [countdown, setCountdown] = useState<number | null>(null);
