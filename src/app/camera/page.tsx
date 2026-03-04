@@ -166,7 +166,10 @@ function CameraContent() {
                             ];
 
                             const exercise = exerciseRef.current;
-                            const res = await fetch(`http://localhost:8000/predict/${exercise}`, {
+                            // Make sure to use process.env.NEXT_PUBLIC_API_URL if possible, otherwise hardcode for now
+                            const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://fitvision-api-hw7f.onrender.com";
+
+                            const res = await fetch(`${API_BASE_URL}/predict/${exercise}`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ features })
