@@ -128,35 +128,42 @@ export default function ErrorReplayPage() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-5 hover:bg-slate-800/50 transition-colors">
-                                <div className="size-10 rounded-lg bg-[#f97316]/20 flex items-center justify-center mb-4">
+                            <button onClick={() => alert('Feature in development: Detailed guide for driving knees out')} className="text-left bg-slate-800/30 border border-slate-700/50 rounded-xl p-5 hover:bg-slate-800/80 hover:border-slate-500 transition-all cursor-pointer group focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <div className="size-10 rounded-lg bg-[#f97316]/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                     <span className="material-symbols-outlined text-[#f97316]">vertical_align_bottom</span>
                                 </div>
-                                <h3 className="text-white font-bold mb-2">Drive Knees Out</h3>
+                                <h3 className="text-white font-bold mb-2 group-hover:text-primary transition-colors">Drive Knees Out</h3>
                                 <p className="text-sm text-slate-400 leading-relaxed">Focus on pushing your knees toward your pinky toes during the descent.</p>
-                            </div>
-                            <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-5 hover:bg-slate-800/50 transition-colors">
-                                <div className="size-10 rounded-lg bg-primary/20 flex items-center justify-center mb-4">
+                            </button>
+                            <button onClick={() => alert('Feature in development: Glute activation exercises')} className="text-left bg-slate-800/30 border border-slate-700/50 rounded-xl p-5 hover:bg-slate-800/80 hover:border-slate-500 transition-all cursor-pointer group focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <div className="size-10 rounded-lg bg-primary/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                     <span className="material-symbols-outlined text-primary">fitness_center</span>
                                 </div>
-                                <h3 className="text-white font-bold mb-2">Engage Glutes</h3>
+                                <h3 className="text-white font-bold mb-2 group-hover:text-primary transition-colors">Engage Glutes</h3>
                                 <p className="text-sm text-slate-400 leading-relaxed">Activate your gluteus medius by imagining you are 'ripping the floor apart' with your feet.</p>
-                            </div>
-                            <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-5 hover:bg-slate-800/50 transition-colors">
-                                <div className="size-10 rounded-lg bg-blue-500/20 flex items-center justify-center mb-4">
+                            </button>
+                            <button onClick={() => alert('Feature in development: Stance optimization tutorial')} className="text-left bg-slate-800/30 border border-slate-700/50 rounded-xl p-5 hover:bg-slate-800/80 hover:border-slate-500 transition-all cursor-pointer group focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <div className="size-10 rounded-lg bg-blue-500/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                     <span className="material-symbols-outlined text-blue-400">straighten</span>
                                 </div>
-                                <h3 className="text-white font-bold mb-2">Check Stance</h3>
+                                <h3 className="text-white font-bold mb-2 group-hover:text-primary transition-colors">Check Stance</h3>
                                 <p className="text-sm text-slate-400 leading-relaxed">Try widening your stance by 2 inches and slightly flare your toes outward (15-30°).</p>
-                            </div>
+                            </button>
                         </div>
 
                         <div className="mt-10 pt-8 border-t border-slate-800 flex flex-wrap gap-4">
-                            <button className="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold py-3 px-8 rounded-lg flex items-center gap-2 transition-all">
+                            <button onClick={() => router.push('/camera')} className="bg-slate-800 hover:bg-slate-700 hover:border-primary/50 border border-slate-600 text-white font-bold py-3 px-8 rounded-lg flex items-center gap-2 transition-all">
                                 <span className="material-symbols-outlined">restart_alt</span>
                                 Re-run Analysis
                             </button>
-                            <button className="bg-slate-900 border border-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-8 rounded-lg flex items-center gap-2 transition-all">
+                            <button onClick={() => {
+                                const a = document.createElement('a');
+                                a.href = errorData.url;
+                                a.download = `fitvision-error-${Date.now()}.webm`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                            }} className="bg-slate-900 border border-slate-700 hover:bg-slate-800 hover:border-slate-500 text-white font-bold py-3 px-8 rounded-lg flex items-center gap-2 transition-all">
                                 <span className="material-symbols-outlined">share</span>
                                 Export Clip
                             </button>
