@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const client = new OpenAI({
-    apiKey: process.env.AI_API_KEY,
-    baseURL: process.env.AI_BASE_URL,
-});
-
 export async function POST(request: NextRequest) {
     try {
+        const client = new OpenAI({
+            apiKey: process.env.AI_API_KEY,
+            baseURL: process.env.AI_BASE_URL,
+        });
+
         const body = await request.json();
         const { errorTitle, errorDetail, exercise, timestamp } = body;
 
