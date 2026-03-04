@@ -20,6 +20,8 @@ function CameraContent() {
     const [currentExercise, setCurrentExercise] = useState(model);
     const [repGoal, setRepGoal] = useState(12);
     const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
+    const [isTrackingStarted, setIsTrackingStarted] = useState(false);
+    const [countdown, setCountdown] = useState<number | null>(null);
 
     const exerciseName = currentExercise === "squat" ? "Back Squat" : currentExercise === "deadlift" ? "Deadlift" : "Bench Press";
 
@@ -137,8 +139,8 @@ function CameraContent() {
                     drawLandmarks(canvasCtx, results.poseLandmarks, { color: "#ef4444", lineWidth: 2, radius: 4 });
 
                     frameCount++;
-                    // Run inference every 6 frames to keep real-time UI smooth
-                    if (frameCount % 6 === 0 && !isPredicting) {
+                    // Run inference every 6 frames to keep real-time UI smooth AND only if tracking has started
+                    if (frameCount % 6 === 0 && !isPredicting && isTrackingStarted) {
                         isPredicting = true;
 
                         const lm = results.poseLandmarks;
@@ -310,6 +312,38 @@ function CameraContent() {
                         </div>
                     </div>
                 </header>
+
+                {/* Countdown Overlay or Start Button */}
+                {!isTrackingStarted && (
+                    <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                        {countdown !== null ? (
+                            <div className="text-8xl md:text-9xl font-black text-white drop-shadow-[0_0_30px_rgba(57,255,20,0.8)] animate-ping">
+                                {countdown}
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => {
+                                    setCountdown(5);
+                                    let count = 5;
+                                    const timer = setInterval(() => {
+                                        count -= 1;
+                                        if (count > 0) {
+                                            setCountdown(count);
+                                        } else {
+                                            clearInterval(timer);
+                                            setCountdown(null);
+                                            setIsTrackingStarted(true);
+                                        }
+                                    }, 1000);
+                                }}
+                                disabled={!isModelReady}
+                                className={`px-10 py-5 rounded-full text-2xl md:text-3xl font-black uppercase tracking-widest shadow-2xl transition-all ${isModelReady ? "bg-primary text-black hover:scale-110 shadow-primary/50 cursor-pointer" : "bg-gray-600 text-gray-300 cursor-not-allowed opacity-70"}`}
+                            >
+                                {isModelReady ? "START WORKOUT" : "WAITING FOR AI..."}
+                            </button>
+                        )}
+                    </div>
+                )}
 
                 <div className="flex-1 border-4 border-dashed border-primary/10 rounded-3xl m-4 pointer-events-none hidden md:block"></div>
 
