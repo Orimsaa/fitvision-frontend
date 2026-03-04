@@ -36,7 +36,7 @@ export default function Sidebar() {
         };
     }, []);
 
-    if (pathname?.startsWith("/camera")) {
+    if (pathname?.startsWith("/camera") || pathname?.startsWith("/login") || pathname?.startsWith("/tutorial")) {
         return null;
     }
 

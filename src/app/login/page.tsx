@@ -27,18 +27,23 @@ export default function LoginPage() {
 
     return (
         <div className="flex min-h-screen w-full flex-col lg:flex-row overflow-hidden bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
-            {/* Left Column: Hero Image & Branding */}
-            <div className="relative hidden lg:flex lg:w-1/2 flex-col justify-between p-12 overflow-hidden animate-fade-in-up opacity-0">
-                {/* Background Image with Gradient Overlay */}
-                <div className="absolute inset-0 z-0">
-                    <div className="absolute inset-0 bg-gradient-to-br from-background-dark/90 via-background-dark/40 to-transparent z-10"></div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-background-dark via-transparent to-transparent z-10"></div>
-                    <img
-                        alt="Athlete performing heavy deadlift"
-                        className="h-full w-full object-cover"
-                        data-alt="Professional athlete performing heavy deadlift in dark gym"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhJCU0xi_Iccp0bKRHUgYrX9Z5Xi3TKxRx3SKZEu3MaLuHCPNae0z-CQruitdTGx101gFsk9lAwSt4YyvYGI6_YEbdrZWuBQEs9wfCkPdhiywMgXe7hX7-WV7tVdjtLebMkT1VKlInbMt5FCdHlMKKaITdhN4lRuwlAQuhYhKV59SAYft4OcHIzevmdZRAsZg-JF0YeZL3g7DcomAoZJibIYPIK88zjXhW3ZubVm2xjwIYY2Sv8dX46q_gIILl6DApxxIg_VjuDJg"
-                    />
+            {/* Left Column: Hero Typography & Branding */}
+            <div className="relative hidden lg:flex lg:w-1/2 flex-col justify-between p-12 overflow-hidden animate-fade-in-up opacity-0 bg-[#0a0f0a]">
+                {/* High-tech abstract background */}
+                <div className="absolute inset-0 z-0 overflow-hidden">
+                    {/* Huge Typography Background */}
+                    <div className="absolute top-1/2 left-0 -translate-y-1/2 -translate-x-12 text-[12vw] leading-[0.85] font-black italic text-white/[0.03] select-none pointer-events-none whitespace-nowrap tracking-tighter">
+                        FIT<br />
+                        VISION<br />
+                        <span className="text-primary/[0.04]">.AI()</span>
+                    </div>
+
+                    {/* Tech Grid */}
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#39ff140a_1px,transparent_1px),linear-gradient(to_bottom,#39ff140a_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_20%,transparent_100%)]"></div>
+
+                    {/* Glow effects */}
+                    <div className="absolute -top-[20%] -left-[10%] w-[80%] h-[80%] bg-primary/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen"></div>
+                    <div className="absolute bottom-[10%] -right-[20%] w-[60%] h-[60%] bg-blue-500/10 rounded-full blur-[100px] pointer-events-none mix-blend-screen"></div>
                 </div>
                 {/* Content */}
                 <div className="relative z-20 flex items-center gap-3">
