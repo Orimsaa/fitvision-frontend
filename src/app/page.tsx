@@ -65,9 +65,7 @@ export default function Home() {
             <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 flex items-center gap-3">
               {t.dashboard.greeting}
               <span className="text-primary drop-shadow-[0_0_12px_rgba(57,255,20,0.4)] whitespace-nowrap">
-                {t.dashboard.athlete.split('').map((char, index) => (
-                  <span key={index} className="athlete-char inline-block">{char}</span>
-                ))}
+                {t.dashboard.athlete}
               </span>
               <span className="material-symbols-outlined text-primary text-3xl md:text-5xl animate-[wave_2s_ease-in-out_infinite] origin-bottom-right">waving_hand</span>
             </h1>
