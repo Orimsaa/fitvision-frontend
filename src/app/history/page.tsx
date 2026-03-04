@@ -1,12 +1,13 @@
 "use client";
-import Link from "next/link";
 import DashboardLayout from "@/components/DashboardLayout";
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import anime from "animejs";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function HistoryPage() {
     const { t } = useLanguage();
+    const router = useRouter();
     const [history, setHistory] = useState<any[]>([]);
     const [isHeatmapMenuOpen, setIsHeatmapMenuOpen] = useState(false);
 
@@ -242,8 +243,16 @@ export default function HistoryPage() {
 
                                 {history.length === 0 ? (
                                     <div className="text-slate-400 p-4 border border-white/5 rounded-xl text-center">{t.history.pastSessions.empty}</div>
-                                ) : history.slice(0, 10).map((session, i) => (
-                                    <Link href={`/history/detail`} key={session.id || i} className="animate-stagger-history opacity-0 group flex flex-col sm:flex-row items-center gap-4 bg-surface-dark hover:bg-surface-dark-hover border border-white/5 hover:border-primary/30 p-4 rounded-xl transition-all cursor-pointer flex-shrink-0">
+                                ) : history.map((session, i) => (
+                                    <div
+                                        onClick={() => {
+                                            sessionStorage.setItem('fitvision_session_stats', JSON.stringify(session));
+                                            sessionStorage.setItem('fitvision_errors', JSON.stringify(session.errors || []));
+                                            router.push('/summary');
+                                        }}
+                                        key={session.id || i}
+                                        className="animate-stagger-history opacity-0 group flex flex-col sm:flex-row items-center gap-4 bg-surface-dark hover:bg-surface-dark-hover border border-white/5 hover:border-primary/30 p-4 rounded-xl transition-all cursor-pointer flex-shrink-0"
+                                    >
                                         <div className="relative w-full sm:w-20 h-20 sm:h-20 shrink-0 rounded-lg overflow-hidden bg-black flex items-center justify-center border border-white/5">
                                             <span className="material-symbols-outlined text-4xl text-slate-500 group-hover:text-primary transition-all">fitness_center</span>
                                         </div>
@@ -262,13 +271,16 @@ export default function HistoryPage() {
                                                 ) : (
                                                     <span className="text-orange-400 font-medium text-xs">{session.errorCount} {t.history.pastSessions.mistakes}</span>
                                                 )}
+                                                {session.completedReps > 0 && (
+                                                    <span className="text-blue-400 font-medium text-xs">{session.completedReps} Reps</span>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="flex flex-col items-center justify-center pl-0 sm:pl-4 border-l-0 sm:border-l border-white/10 w-full sm:w-auto">
                                             <span className="text-xs text-slate-400 uppercase tracking-wider mb-1">{t.history.pastSessions.accuracy}</span>
                                             <span className={`text-2xl font-bold ${session.avgScore > 90 ? 'text-primary drop-shadow-[0_0_5px_rgba(57,255,20,0.5)]' : 'text-white'}`}>{session.avgScore}%</span>
                                         </div>
-                                    </Link>
+                                    </div>
                                 ))}
 
                             </div>

@@ -443,10 +443,27 @@ function CameraContent() {
         const scores = statsRef.current.scores;
         const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 100;
         const errors = JSON.parse(sessionStorage.getItem('fitvision_errors') || '[]');
-        sessionStorage.setItem('fitvision_session_stats', JSON.stringify({
-            id: Date.now().toString(), exercise: statsRef.current.exerciseName,
-            avgScore, errorCount: errors.length, completedReps: currentReps, repGoal, timestamp: new Date().toISOString()
-        }));
+
+        const sessionPayload = {
+            id: Date.now().toString(),
+            exercise: statsRef.current.exerciseName,
+            avgScore,
+            errorCount: errors.length,
+            completedReps: currentReps,
+            repGoal,
+            timestamp: new Date().toISOString(),
+            errors: errors
+        };
+
+        // Save for immediate summary view
+        sessionStorage.setItem('fitvision_session_stats', JSON.stringify(sessionPayload));
+
+        // Save to persistent history
+        const history = JSON.parse(localStorage.getItem('fitvision_history') || '[]');
+        history.unshift(sessionPayload); // Add new session to top of list
+        // Keep only last 50 sessions to prevent localStorage quota issues especially with Blob URLs
+        if (history.length > 50) history.pop();
+        localStorage.setItem('fitvision_history', JSON.stringify(history));
     };
 
     return (
