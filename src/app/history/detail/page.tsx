@@ -35,10 +35,10 @@ export default function ErrorReplayPage() {
 
                 <div className="grid grid-cols-1 gap-8 animate-stagger-replay opacity-0">
                     <div className="relative group">
-                        <div className="absolute -inset-1 bg-gradient-to-r from-error/20 to-warning/20 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
-                        <div className="relative bg-black rounded-xl overflow-hidden shadow-2xl border border-slate-800 aspect-video flex flex-col">
+                        <div className="absolute -inset-1 bg-gradient-to-r from-[#ff4747]/10 to-transparent rounded-xl blur-md opacity-20"></div>
+                        <div className="relative bg-[#0f172a] rounded-xl overflow-hidden shadow-2xl border border-slate-800 aspect-video flex flex-col">
                             <div className="absolute top-4 left-4 z-20 flex gap-2">
-                                <span className="bg-[#ff4747]/90 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider flex items-center gap-1">
+                                <span className="bg-[#ff4747] text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider flex items-center gap-1">
                                     <span className="material-symbols-outlined text-xs">error</span>
                                     Critical Form Error
                                 </span>
@@ -119,11 +119,11 @@ export default function ErrorReplayPage() {
                         </div>
 
                         <div className="mt-10 pt-8 border-t border-slate-800 flex flex-wrap gap-4">
-                            <button className="bg-primary hover:bg-primary/90 text-[#0f172a] font-bold py-3 px-8 rounded-lg flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(60,249,26,0.2)]">
+                            <button className="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold py-3 px-8 rounded-lg flex items-center gap-2 transition-all">
                                 <span className="material-symbols-outlined">restart_alt</span>
                                 Re-run Analysis
                             </button>
-                            <button className="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 px-8 rounded-lg flex items-center gap-2 transition-all border border-slate-700">
+                            <button className="bg-slate-900 border border-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-8 rounded-lg flex items-center gap-2 transition-all">
                                 <span className="material-symbols-outlined">share</span>
                                 Export Clip
                             </button>
@@ -132,21 +132,21 @@ export default function ErrorReplayPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20 animate-stagger-replay opacity-0">
                         <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-6">
-                            <h3 className="text-slate-100 font-bold mb-4 flex items-center gap-2">
-                                <span className="material-symbols-outlined text-primary">monitoring</span>
-                                Biometric Stability
-                            </h3>
-                            <div className="h-40 w-full bg-slate-800/50 rounded-lg relative overflow-hidden flex items-end px-2 gap-1">
-                                <div className="flex-1 bg-primary/40 h-[60%] rounded-t-sm"></div>
-                                <div className="flex-1 bg-primary/40 h-[65%] rounded-t-sm"></div>
-                                <div className="flex-1 bg-[#ff4747]/60 h-[30%] rounded-t-sm animate-pulse"></div>
-                                <div className="flex-1 bg-[#ff4747]/60 h-[25%] rounded-t-sm animate-pulse"></div>
-                                <div className="flex-1 bg-primary/40 h-[55%] rounded-t-sm"></div>
-                                <div className="flex-1 bg-primary/40 h-[70%] rounded-t-sm"></div>
-                                <div className="flex-1 bg-primary/40 h-[80%] rounded-t-sm"></div>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Joint Angle Variance</span>
-                                </div>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-slate-100 font-bold flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-primary">monitoring</span>
+                                    Biometric Stability
+                                </h3>
+                                <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest bg-slate-800 px-2 py-1 rounded">Joint Angle Variance</span>
+                            </div>
+                            <div className="h-40 w-full bg-slate-800/30 border border-slate-700/50 rounded-lg relative overflow-hidden flex items-end px-3 gap-2 pb-0 pt-4">
+                                <div className="flex-1 bg-primary/30 hover:bg-primary/50 transition-colors h-[60%] rounded-t-sm"></div>
+                                <div className="flex-1 bg-primary/30 hover:bg-primary/50 transition-colors h-[65%] rounded-t-sm"></div>
+                                <div className="flex-1 bg-[#ff4747]/80 h-[30%] rounded-t-sm shadow-[0_0_10px_rgba(255,71,71,0.5)] z-10"></div>
+                                <div className="flex-1 bg-[#ff4747]/80 h-[25%] rounded-t-sm shadow-[0_0_10px_rgba(255,71,71,0.5)] z-10"></div>
+                                <div className="flex-1 bg-primary/30 hover:bg-primary/50 transition-colors h-[55%] rounded-t-sm"></div>
+                                <div className="flex-1 bg-primary/30 hover:bg-primary/50 transition-colors h-[70%] rounded-t-sm"></div>
+                                <div className="flex-1 bg-primary/30 hover:bg-primary/50 transition-colors h-[80%] rounded-t-sm"></div>
                             </div>
                         </div>
                         <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-6">
