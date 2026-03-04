@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import anime from "animejs";
@@ -8,8 +8,15 @@ import DashboardLayout from "@/components/DashboardLayout";
 
 export default function ErrorReplayPage() {
     const router = useRouter();
+    const [errorData, setErrorData] = useState<{ url: string, title: string, detail: string, time: string } | null>(null);
 
     useEffect(() => {
+        // Load real data from session storage
+        const stored = sessionStorage.getItem('fitvision_history_detail_data');
+        if (stored) {
+            setErrorData(JSON.parse(stored));
+        }
+
         // Entrance animation
         anime({
             targets: '.animate-stagger-replay',
@@ -20,6 +27,18 @@ export default function ErrorReplayPage() {
             delay: anime.stagger(100, { start: 100 })
         });
     }, []);
+
+    if (!errorData) {
+        return (
+            <DashboardLayout>
+                <div className="flex-1 max-w-5xl mx-auto w-full px-5 py-20 flex flex-col items-center justify-center text-center">
+                    <span className="material-symbols-outlined text-6xl text-slate-700 mb-4 animate-pulse">hourglass_empty</span>
+                    <h2 className="text-xl font-bold text-slate-300">Loading Analysis...</h2>
+                    <button onClick={() => router.back()} className="mt-6 text-primary hover:underline font-bold">Return to Summary</button>
+                </div>
+            </DashboardLayout>
+        );
+    }
 
     return (
         <DashboardLayout>
@@ -40,30 +59,26 @@ export default function ErrorReplayPage() {
                             <div className="absolute top-4 left-4 z-20 flex gap-2">
                                 <span className="bg-[#ff4747] text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider flex items-center gap-1">
                                     <span className="material-symbols-outlined text-xs">error</span>
-                                    Critical Form Error
+                                    {errorData.title}
                                 </span>
                                 <span className="bg-black/60 backdrop-blur-md text-slate-200 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">
-                                    00:02 - 00:05
+                                    {errorData.time}
                                 </span>
                             </div>
-                            <div className="relative flex-1 bg-center bg-cover"
-                                data-alt="Person performing a squat in a gym with skeletal tracking overlay"
-                                style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAnfOfUhfFZ6TZiSIQqsGU6ZKA9-7MkHFOXlNe_wp3sDR0QHsPGY-byTGd1vlCtL4prf6sHzhQFXsE8FJJTqwfW0kUscADzetrWYdsOXU-kJIzCXH1oYe7WbP8VRVgaJZ5jXAIztBopi0gSctqH_DKGgHa9vBjEEihtbpbVgRMwA-BwpcQHuGA0xJNaVMP9WqOIKqT5_sLxv1rn0XFIwR-_gDHWALAgrjACeO3ettQB6lWW3j8SlvMb_4GfIIK_6Yi2ywNc-aeAM0c')" }}>
-                                <div className="absolute inset-0 bg-black/20"></div>
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <button className="flex items-center justify-center rounded-full size-20 bg-primary text-[#0f172a] hover:scale-110 transition-transform shadow-[0_0_30px_rgba(60,249,26,0.4)]">
-                                        <span className="material-symbols-outlined text-4xl fill-current">play_arrow</span>
-                                    </button>
-                                </div>
+                            <div className="relative flex-1 bg-black overflow-hidden flex items-center justify-center">
+                                <video
+                                    src={errorData.url}
+                                    className="w-full h-full object-contain"
+                                    controls
+                                    autoPlay
+                                    loop
+                                    playsInline
+                                    muted
+                                />
                             </div>
                             <div className="bg-slate-900/90 backdrop-blur-md px-6 py-4">
-                                <div className="flex items-center gap-4">
-                                    <span className="text-primary text-xs font-mono">00:02</span>
-                                    <div className="flex-1 h-1.5 bg-slate-700 rounded-full relative overflow-hidden">
-                                        <div className="absolute inset-y-0 left-0 w-1/4 bg-primary rounded-full"></div>
-                                        <div className="absolute inset-y-0 left-[15%] w-[10%] bg-[#ff4747] shadow-[0_0_8px_rgba(255,71,71,0.8)]"></div>
-                                    </div>
-                                    <span className="text-slate-400 text-xs font-mono">00:03</span>
+                                <div className="text-sm text-slate-400 font-mono text-center flex items-center justify-center gap-2">
+                                    <span className="material-symbols-outlined text-sm">videocam</span> Automatically Captured Snapshot
                                 </div>
                             </div>
                         </div>
@@ -78,18 +93,18 @@ export default function ErrorReplayPage() {
                                         AI Neural Analysis
                                     </h2>
                                 </div>
-                                <h1 className="text-2xl md:text-3xl font-bold text-white">Dynamic Valgus Detected</h1>
-                                <p className="text-slate-400 mt-1 italic">"Your knees are moving inward during the eccentric phase, increasing ACL strain."</p>
+                                <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">{errorData.title}</h1>
+                                <p className="text-slate-300 mt-1 italic border-l-2 border-[#ff4747]/50 pl-3 leading-relaxed">"{errorData.detail}"</p>
                             </div>
-                            <div className="flex items-center gap-4 bg-[#ff4747]/10 border border-[#ff4747]/20 rounded-lg px-4 py-2">
+                            <div className="flex items-center gap-4 bg-[#ff4747]/10 border border-[#ff4747]/20 rounded-lg px-4 py-3 shrink-0">
                                 <div className="text-center">
                                     <p className="text-[10px] text-[#ff4747] uppercase font-bold">Severity</p>
                                     <p className="text-xl font-bold text-white">High</p>
                                 </div>
                                 <div className="w-px h-8 bg-[#ff4747]/20"></div>
                                 <div className="text-center">
-                                    <p className="text-[10px] text-[#ff4747] uppercase font-bold">Time</p>
-                                    <p className="text-xl font-bold text-white">00:02</p>
+                                    <p className="text-[10px] text-[#ff4747] uppercase font-bold">Timestamp</p>
+                                    <p className="text-base font-bold text-white">{errorData.time}</p>
                                 </div>
                             </div>
                         </div>

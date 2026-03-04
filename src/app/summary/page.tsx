@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import anime from "animejs";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useLanguage } from "@/context/LanguageContext";
@@ -23,6 +24,7 @@ const groupErrors = (errorList: ErrorRecord[]) => {
 
 export default function SummaryPage() {
     const { t } = useLanguage();
+    const router = useRouter();
     const [errors, setErrors] = useState<ErrorRecord[]>([]);
     const [stats, setStats] = useState<any>(null);
 
@@ -203,6 +205,18 @@ export default function SummaryPage() {
                                             <div className="mt-2 text-xs text-slate-500 flex items-center gap-1">
                                                 <span className="material-symbols-outlined text-sm">info</span>
                                                 {t.summary.errorReplays.clipDesc}
+                                            </div>
+                                            <div className="mt-4 flex gap-2">
+                                                <button
+                                                    onClick={() => {
+                                                        sessionStorage.setItem('fitvision_history_detail_data', JSON.stringify(error));
+                                                        router.push('/history/detail');
+                                                    }}
+                                                    className="w-full bg-slate-800 hover:bg-primary/20 hover:text-primary text-white border border-slate-700 hover:border-primary/50 text-sm font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-2"
+                                                >
+                                                    <span className="material-symbols-outlined text-sm">troubleshoot</span>
+                                                    Deep Analysis
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
