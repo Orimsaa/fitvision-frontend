@@ -79,3 +79,159 @@
   background: rgba(60, 249, 26, 0.2);
   border-radius: 10px;
 }
+
+/* =============================================
+   Markdown Chat Bubble Styles (.prose-chat)
+   Used by the AI Chat page to render Gemini responses
+   ============================================= */
+.prose-chat {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #cbd5e1;
+}
+
+.prose-chat p {
+  margin: 0.4rem 0;
+}
+
+.prose-chat h1,
+.prose-chat h2,
+.prose-chat h3 {
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0.8rem 0 0.4rem;
+}
+
+.prose-chat h1 {
+  font-size: 1.1rem;
+}
+
+.prose-chat h2 {
+  font-size: 1rem;
+  color: #39FF14;
+}
+
+.prose-chat h3 {
+  font-size: 0.9rem;
+  color: #39FF14;
+  opacity: 0.85;
+}
+
+.prose-chat strong {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.prose-chat em {
+  font-style: italic;
+  color: #94a3b8;
+}
+
+.prose-chat ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin: 0.4rem 0;
+}
+
+.prose-chat ol {
+  list-style: decimal;
+  padding-left: 1.25rem;
+  margin: 0.4rem 0;
+}
+
+.prose-chat li {
+  margin: 0.2rem 0;
+}
+
+.prose-chat ul li::marker {
+  color: #39FF14;
+}
+
+.prose-chat ol li::marker {
+  color: #39FF14;
+  font-weight: 700;
+}
+
+.prose-chat hr {
+  border-color: rgba(255, 255, 255, 0.08);
+  margin: 0.8rem 0;
+}
+
+.prose-chat blockquote {
+  border-left: 2px solid #39FF14;
+  padding-left: 0.75rem;
+  color: #94a3b8;
+  margin: 0.5rem 0;
+  font-style: italic;
+}
+
+.prose-chat code {
+  background: rgba(57, 255, 20, 0.08);
+  border: 1px solid rgba(57, 255, 20, 0.15);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.8rem;
+  color: #39FF14;
+  font-family: monospace;
+}
+
+.prose-chat pre {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  margin: 0.6rem 0;
+}
+
+.prose-chat pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #94a3b8;
+}
+
+/* Table styles */
+.prose-chat table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  margin: 0.75rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.prose-chat thead {
+  background: rgba(57, 255, 20, 0.08);
+  border-bottom: 1px solid rgba(57, 255, 20, 0.2);
+}
+
+.prose-chat thead th {
+  color: #39FF14;
+  font-weight: 700;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.prose-chat tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.15s;
+}
+
+.prose-chat tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.prose-chat tbody td {
+  padding: 0.45rem 0.75rem;
+  color: #94a3b8;
+  vertical-align: top;
+}
+
+.prose-chat tbody td:first-child {
+  color: #e2e8f0;
+  font-weight: 500;
+}

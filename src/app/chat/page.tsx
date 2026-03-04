@@ -3,6 +3,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import anime from "animejs";
+import { marked } from "marked";
+
+// Configure marked for safe, clean output
+marked.setOptions({ breaks: true, gfm: true });
 
 interface Message {
     role: "user" | "assistant";
@@ -94,32 +98,8 @@ export default function ChatPage() {
         e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
     };
 
-    const renderContent = (text: string) => {
-        return text.split('\n').map((line, i) => {
-            const boldParsed = line.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>');
-            if (line.trim().startsWith('- ') || line.trim().startsWith('• ')) {
-                const bulletText = line.trim().replace(/^[-•]\s*/, '');
-                const parsed = bulletText.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>');
-                return (
-                    <div key={i} className="flex gap-2.5 items-start ml-1 my-1">
-                        <span className="text-primary mt-2 text-[5px]">●</span>
-                        <span dangerouslySetInnerHTML={{ __html: parsed }} />
-                    </div>
-                );
-            }
-            const numMatch = line.trim().match(/^(\d+)\.\s+(.*)/);
-            if (numMatch) {
-                const parsed = numMatch[2].replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>');
-                return (
-                    <div key={i} className="flex gap-2.5 items-start ml-1 my-1">
-                        <span className="text-primary text-xs font-bold min-w-[18px] mt-0.5">{numMatch[1]}.</span>
-                        <span dangerouslySetInnerHTML={{ __html: parsed }} />
-                    </div>
-                );
-            }
-            if (line.trim() === '') return <div key={i} className="h-3" />;
-            return <p key={i} className="my-1" dangerouslySetInnerHTML={{ __html: boldParsed }} />;
-        });
+    const renderMarkdown = (text: string): string => {
+        return marked(text) as string;
     };
 
     return (
@@ -202,7 +182,12 @@ export default function ChatPage() {
                                 : "bg-surface-dark border border-white/5 text-slate-300 rounded-bl-sm"
                                 }`}
                             >
-                                {msg.role === "assistant" ? renderContent(msg.content) : msg.content}
+                                {msg.role === "assistant" ? (
+                                    <div
+                                        className="prose-chat"
+                                        dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }}
+                                    />
+                                ) : msg.content}
                             </div>
                             {msg.role === "user" && (
                                 <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/5 flex items-center justify-center shrink-0 mt-1">
