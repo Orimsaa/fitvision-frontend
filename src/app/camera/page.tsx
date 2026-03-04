@@ -394,257 +394,189 @@ function CameraContent() {
         };
     }, [areScriptsLoaded, facingMode]);
 
+    const endWorkoutData = () => {
+        const scores = statsRef.current.scores;
+        const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 100;
+        const errors = JSON.parse(sessionStorage.getItem('fitvision_errors') || '[]');
+        sessionStorage.setItem('fitvision_session_stats', JSON.stringify({
+            id: Date.now().toString(), exercise: statsRef.current.exerciseName,
+            avgScore, errorCount: errors.length, completedReps: currentReps, repGoal, timestamp: new Date().toISOString()
+        }));
+    };
+
     return (
-        <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col overflow-hidden relative">
+        <div className="bg-black font-display text-white h-screen flex flex-col overflow-hidden">
             <Script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" strategy="lazyOnload" />
             <Script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" strategy="lazyOnload" />
             <Script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" strategy="lazyOnload"
-                onLoad={() => {
-                    setTimeout(() => setAreScriptsLoaded(true), 500);
-                }}
+                onLoad={() => { setTimeout(() => setAreScriptsLoaded(true), 500); }}
             />
 
-            <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="absolute inset-0 z-0 w-full h-full object-cover"
-                style={{
-                    filter: "brightness(0.6) contrast(1.1)",
-                    transform: facingMode === "user" ? "scaleX(-1)" : "scaleX(1)",
-                }}
-            />
+            <div className="flex flex-col lg:flex-row flex-1 h-full overflow-hidden">
+                {/* ── Camera View ── */}
+                <div className="relative flex-1 flex flex-col min-h-0">
+                    <video ref={videoRef} autoPlay playsInline muted
+                        className="absolute inset-0 z-0 w-full h-full object-cover"
+                        style={{ filter: "brightness(0.6) contrast(1.1)", transform: facingMode === "user" ? "scaleX(-1)" : "scaleX(1)" }}
+                    />
+                    <canvas ref={canvasRef}
+                        className="absolute inset-0 z-10 w-full h-full object-cover pointer-events-none"
+                        style={{ transform: facingMode === "user" ? "scaleX(-1)" : "scaleX(1)" }}
+                    />
 
-            <div className="absolute inset-0 z-0 bg-grid-pattern pointer-events-none"></div>
-
-            <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-                <canvas
-                    ref={canvasRef}
-                    className="w-full h-full object-cover opacity-80"
-                    style={{
-                        transform: facingMode === "user" ? "scaleX(-1)" : "scaleX(1)",
-                    }}
-                />
-            </div>
-
-            <div className="relative z-20 flex flex-col h-full justify-between p-4 md:p-6 lg:p-8 grow">
-                <header className="flex items-center justify-between w-full">
-                    <Link
-                        href="/"
-                        className="flex items-center gap-2 text-white/90 hover:text-primary transition-colors bg-black/20 backdrop-blur-md px-4 md:px-5 py-3 md:py-2 rounded-full border border-white/10 shadow-lg min-h-[48px]"
-                    >
-                        <span className="material-symbols-outlined text-xl md:text-lg">arrow_back_ios_new</span>
-                        <span className="font-bold text-sm hidden md:block">Back</span>
-                    </Link>
-                    <div className="flex items-center gap-2 md:gap-3">
-
-
-                        <button
-                            onClick={() => setFacingMode(prev => prev === "user" ? "environment" : "user")}
-                            className="md:hidden flex items-center justify-center size-12 bg-black/40 backdrop-blur-md rounded-full border border-white/10 text-white hover:text-primary transition-colors shadow-lg active:scale-95"
-                            title="Flip Camera"
-                        >
-                            <span className="material-symbols-outlined">flip_camera_ios</span>
-                        </button>
-
-                        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-black/40 backdrop-blur-md rounded-lg border border-white/10 shadow-lg">
-                            <span className="material-symbols-outlined text-primary text-sm">videocam</span>
-                            <span className="text-xs font-bold text-white tracking-wider">AI VISION ACTIVE</span>
-                        </div>
-                        <div className={`text-white px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-lg ${isModelReady ? "animate-pulse-red bg-red-600 shadow-red-900/50" : "bg-orange-500 shadow-orange-900/50"}`}>
-                            <div className={`w-2 h-2 rounded-full bg-white ${isModelReady ? "animate-pulse" : ""}`}></div>
-                            <span className="text-xs md:text-xs font-bold tracking-widest">{isModelReady ? "LIVE" : "LOADING AI"}</span>
-                        </div>
-                    </div>
-                </header>
-
-                {/* ── Onboarding Overlay ── */}
-                {!isTrackingStarted && (
-                    <div className="absolute inset-0 z-40 flex items-center justify-center bg-gradient-to-b from-black/70 via-black/50 to-black/70 backdrop-blur-sm">
-                        {countdown !== null ? (
-                            <div className="flex flex-col items-center gap-4">
-                                <div className="text-8xl md:text-9xl font-black text-primary drop-shadow-[0_0_40px_rgba(57,255,20,0.6)] animate-pulse">
-                                    {countdown}
-                                </div>
-                                <p className="text-white/70 text-lg font-medium animate-pulse">Get Ready...</p>
-                            </div>
-                        ) : (
-                            <div className="w-full max-w-sm mx-4 bg-background-dark/90 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl shadow-black/50 p-6 md:p-8 flex flex-col gap-5">
-                                {/* Header */}
-                                <div className="text-center">
-                                    <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-3">
-                                        <span className="material-symbols-outlined text-primary text-sm">smart_toy</span>
-                                        <span className="text-primary text-xs font-bold tracking-wider uppercase">{isModelReady ? "AI Ready" : "Loading AI..."}</span>
-                                    </div>
-                                    <h2 className="text-white text-2xl md:text-3xl font-black tracking-tight">FitVision</h2>
-                                    <p className="text-white/50 text-sm mt-1">Choose your exercise & start analyzing</p>
-                                </div>
-
-                                {/* Exercise Selector */}
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-white/60 text-xs font-bold uppercase tracking-wider">Exercise</label>
-                                    <div className="relative">
-                                        <select
-                                            value={currentExercise}
-                                            onChange={(e) => setCurrentExercise(e.target.value)}
-                                            className="appearance-none w-full bg-white/5 border border-white/10 rounded-xl text-white font-bold py-3 pl-4 pr-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer transition-all hover:bg-white/10 text-base"
-                                        >
-                                            <option value="benchpress">🏋️ Bench Press</option>
-                                            <option value="squat">🦵 Back Squat</option>
-                                            <option value="deadlift">💪 Deadlift</option>
-                                        </select>
-                                        <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">expand_more</span>
-                                    </div>
-                                </div>
-
-                                {/* Rep Goal */}
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-white/60 text-xs font-bold uppercase tracking-wider">Rep Goal: <span className="text-primary">{repGoal}</span></label>
-                                    <input
-                                        type="range"
-                                        min="1"
-                                        max="50"
-                                        value={repGoal}
-                                        onChange={(e) => setRepGoal(Number(e.target.value))}
-                                        className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#39ff14]"
-                                    />
-                                </div>
-
-                                {/* Action Buttons */}
-                                <div className="flex flex-col gap-3 mt-1">
-                                    <button
-                                        onClick={() => {
-                                            setCountdown(3);
-                                            let count = 3;
-                                            const timer = setInterval(() => {
-                                                count -= 1;
-                                                if (count > 0) {
-                                                    setCountdown(count);
-                                                } else {
-                                                    clearInterval(timer);
-                                                    setCountdown(null);
-                                                    setIsTrackingStarted(true);
-                                                    isTrackingStartedRef.current = true;
-                                                }
-                                            }, 1000);
-                                        }}
-                                        disabled={!isModelReady}
-                                        className={`w-full py-4 rounded-2xl text-lg font-black uppercase tracking-wider shadow-xl transition-all flex items-center justify-center gap-3 ${isModelReady ? "bg-primary text-black hover:scale-[1.02] hover:shadow-primary/40 active:scale-[0.98] cursor-pointer" : "bg-gray-700 text-gray-400 cursor-not-allowed"}`}
-                                    >
-                                        <span className="material-symbols-outlined text-2xl">{isModelReady ? "videocam" : "hourglass_top"}</span>
-                                        {isModelReady ? "Start Live Camera" : "Loading AI..."}
-                                    </button>
-
-                                    <label className={`w-full py-3.5 rounded-2xl text-base font-bold uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-3 border cursor-pointer ${isModelReady ? "bg-white/5 border-white/15 text-white hover:bg-white/10 hover:border-white/25 active:scale-[0.98]" : "bg-gray-800 border-gray-700 text-gray-500 cursor-not-allowed pointer-events-none"}`}>
-                                        <span className="material-symbols-outlined text-xl text-blue-400">upload_file</span>
-                                        Upload Video File
-                                        <input type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} disabled={!isModelReady} />
-                                    </label>
-                                </div>
-
-                                {/* Tip */}
-                                <p className="text-center text-white/30 text-xs leading-relaxed">
-                                    💡 Stand 2-3 meters from camera for best results
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                <div className="flex-1 border-4 border-dashed border-primary/10 rounded-3xl m-4 pointer-events-none hidden md:block"></div>
-
-                {isTrackingStarted && (
-                    <div className="w-full flex flex-col items-center gap-3 md:gap-6 pb-2 md:pb-4 pointer-events-auto mt-auto">
-                        <div className="w-full max-w-md bg-background-dark/60 md:bg-background-dark/80 backdrop-blur-md md:backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-5 shadow-lg relative overflow-hidden group">
-                            <div className="absolute -top-10 -right-10 w-20 h-20 bg-primary/20 blur-3xl rounded-full"></div>
-                            <div className="flex flex-col gap-2 md:gap-3">
-
-                                <div className="flex justify-between items-center gap-3">
-                                    <div className="flex flex-col w-full relative">
-                                        <select
-                                            value={currentExercise}
-                                            onChange={(e) => setCurrentExercise(e.target.value)}
-                                            className="appearance-none bg-black/40 border border-white/10 rounded-xl text-white font-bold py-2 md:py-3 pl-3 md:pl-4 pr-8 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary w-full cursor-pointer transition-all hover:bg-black/60 shadow-inner text-sm md:text-base"
-                                        >
-                                            <option value="benchpress">Bench Press (Tree Model 99.9%)</option>
-                                            <option value="squat">Back Squat (Deep MLP 98.5%)</option>
-                                            <option value="deadlift">Deadlift (Deep MLP 98.1%)</option>
-                                        </select>
-                                        <span className="material-symbols-outlined absolute right-2 md:right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-lg">expand_more</span>
-                                    </div>
-
-                                    <div className="shrink-0 w-24 md:w-32">
-                                        <div className="px-2 md:px-3 py-2 md:py-3 bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 rounded-xl text-primary font-bold flex flex-col items-center justify-center shadow-[0_0_15px_rgba(57,255,20,0.15)] min-w-[80px] md:min-w-[100px]">
-                                            <span className="text-[10px] md:text-xs text-primary/80 uppercase tracking-widest leading-none mb-1">Form</span>
-                                            <span className="text-3xl md:text-4xl font-black leading-none">{formScore}<span className="text-xs md:text-sm font-bold">%</span></span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className={`flex items-start gap-3 border rounded-xl p-3 md:p-4 ${isGoodForm ? "bg-primary/10 border-primary/30" : "bg-red-500/10 border-red-500/30"}`}>
-                                    <span className={`material-symbols-outlined shrink-0 text-2xl md:text-3xl ${isGoodForm ? "text-primary" : "text-red-400"}`}>
-                                        {isGoodForm ? "check_circle" : "warning"}
-                                    </span>
-                                    <div className="flex flex-col flex-1 min-w-0 justify-center">
-                                        <span className={`font-black text-sm md:text-base truncate ${isGoodForm ? "text-primary" : "text-red-300"}`}>
-                                            {feedbackTitle}
-                                        </span>
-                                        <span className={`${isGoodForm ? "text-primary" : "text-red-200"} text-xs md:text-sm leading-tight opacity-90 line-clamp-2`}>
-                                            {isModelReady ? feedbackDetail : "Warming up AI models... Please stand in frame."}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-2 mt-1">
-                                    <div className="flex-1 bg-black/40 rounded-xl p-2 md:p-3 flex items-center justify-center gap-1.5 border border-white/5">
-                                        <span className={`material-symbols-outlined text-lg md:text-xl ${isGoodForm ? "text-primary" : "text-orange-400"}`}>health_and_safety</span>
-                                        <span className="text-xs md:text-sm text-white font-medium whitespace-nowrap">Risk: {isGoodForm ? "Low" : "High"}</span>
-                                    </div>
-                                    <div className="flex-1 bg-black/40 rounded-xl p-2 md:p-3 flex flex-col items-center justify-center gap-1.5 border border-white/5 relative">
-                                        <div className="flex items-center gap-1">
-                                            <span className="material-symbols-outlined text-blue-400 text-lg md:text-xl">fitness_center</span>
-                                            <span className="text-xs md:text-sm text-white font-medium flex items-center gap-1">
-                                                Reps: <span className="text-blue-400 font-bold text-lg">{currentReps}</span> / {repGoal}
-                                            </span>
-                                        </div>
-                                        <input
-                                            type="range"
-                                            min="1"
-                                            max="50"
-                                            value={repGoal}
-                                            onChange={(e) => setRepGoal(Number(e.target.value))}
-                                            className="w-full h-1.5 md:h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <Link
-                            href="/summary"
-                            onClick={() => {
-                                const scores = statsRef.current.scores;
-                                const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 100;
-                                const errors = JSON.parse(sessionStorage.getItem('fitvision_errors') || '[]');
-
-                                const sessionData = {
-                                    id: Date.now().toString(),
-                                    exercise: statsRef.current.exerciseName,
-                                    avgScore,
-                                    errorCount: errors.length,
-                                    completedReps: currentReps,
-                                    repGoal: repGoal,
-                                    timestamp: new Date().toISOString()
-                                };
-                                sessionStorage.setItem('fitvision_session_stats', JSON.stringify(sessionData));
-                            }}
-                            className="w-full max-w-md h-14 md:h-16 mt-1 md:mt-2 bg-red-600/90 backdrop-blur-md hover:bg-red-500 active:scale-[0.98] transition-all rounded-2xl text-white font-black text-lg md:text-xl shadow-lg shadow-red-900/40 border border-red-500/50 flex items-center justify-center gap-2 md:gap-3 cursor-pointer mb-2"
-                        >
-                            <span className="material-symbols-outlined text-2xl">stop_circle</span>
-                            END WORKOUT
+                    {/* Top Bar */}
+                    <header className="relative z-30 flex items-center justify-between p-3 md:p-4">
+                        <Link href="/" className="flex items-center gap-1.5 text-white/80 hover:text-white bg-black/30 backdrop-blur-md px-3 py-2 rounded-full border border-white/10 transition-colors">
+                            <span className="material-symbols-outlined text-lg">arrow_back_ios_new</span>
+                            <span className="text-sm font-semibold hidden sm:block">Back</span>
                         </Link>
-                    </div>
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => setFacingMode(p => p === "user" ? "environment" : "user")}
+                                className="lg:hidden flex items-center justify-center w-10 h-10 bg-black/30 backdrop-blur-md rounded-full border border-white/10 text-white/80 active:scale-95 transition-all">
+                                <span className="material-symbols-outlined text-lg">flip_camera_ios</span>
+                            </button>
+                            {isTrackingStarted && (
+                                <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10 text-xs font-bold text-white/80 tracking-wider">
+                                    <span className="material-symbols-outlined text-primary text-sm">smart_toy</span>AI ACTIVE
+                                </div>
+                            )}
+                            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold tracking-wider ${isModelReady ? "bg-red-600/80 text-white" : "bg-orange-500/80 text-white"}`}>
+                                <div className={`w-1.5 h-1.5 rounded-full bg-white ${isModelReady ? "animate-pulse" : ""}`}></div>
+                                {isModelReady ? "LIVE" : "LOADING"}
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* ── Onboarding Overlay ── */}
+                    {!isTrackingStarted && (
+                        <div className="absolute inset-0 z-40 flex items-center justify-center bg-gradient-to-b from-black/70 via-black/50 to-black/70 backdrop-blur-sm">
+                            {countdown !== null ? (
+                                <div className="flex flex-col items-center gap-4">
+                                    <div className="text-8xl md:text-9xl font-black text-primary drop-shadow-[0_0_40px_rgba(57,255,20,0.6)] animate-pulse">{countdown}</div>
+                                    <p className="text-white/70 text-lg font-medium animate-pulse">Get Ready...</p>
+                                </div>
+                            ) : (
+                                <div className="w-full max-w-sm mx-4 bg-black/85 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl p-6 md:p-8 flex flex-col gap-5">
+                                    <div className="text-center">
+                                        <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-3">
+                                            <span className="material-symbols-outlined text-primary text-sm">smart_toy</span>
+                                            <span className="text-primary text-xs font-bold tracking-wider uppercase">{isModelReady ? "AI Ready" : "Loading AI..."}</span>
+                                        </div>
+                                        <h2 className="text-white text-2xl md:text-3xl font-black">FitVision</h2>
+                                        <p className="text-white/50 text-sm mt-1">Choose your exercise & start analyzing</p>
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-white/60 text-xs font-bold uppercase tracking-wider">Exercise</label>
+                                        <div className="relative">
+                                            <select value={currentExercise} onChange={(e) => setCurrentExercise(e.target.value)}
+                                                className="appearance-none w-full bg-white/5 border border-white/10 rounded-xl text-white font-bold py-3 pl-4 pr-10 focus:outline-none focus:border-primary cursor-pointer hover:bg-white/10 text-base">
+                                                <option value="benchpress">🏋️ Bench Press</option>
+                                                <option value="squat">🦵 Back Squat</option>
+                                                <option value="deadlift">💪 Deadlift</option>
+                                            </select>
+                                            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">expand_more</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-white/60 text-xs font-bold uppercase tracking-wider">Rep Goal: <span className="text-primary">{repGoal}</span></label>
+                                        <input type="range" min="1" max="50" value={repGoal} onChange={(e) => setRepGoal(Number(e.target.value))}
+                                            className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#39ff14]" />
+                                    </div>
+                                    <div className="flex flex-col gap-3 mt-1">
+                                        <button onClick={() => {
+                                            setCountdown(3); let count = 3;
+                                            const timer = setInterval(() => { count -= 1; if (count > 0) setCountdown(count); else { clearInterval(timer); setCountdown(null); setIsTrackingStarted(true); isTrackingStartedRef.current = true; } }, 1000);
+                                        }} disabled={!isModelReady}
+                                            className={`w-full py-4 rounded-2xl text-lg font-black uppercase tracking-wider shadow-xl transition-all flex items-center justify-center gap-3 ${isModelReady ? "bg-primary text-black hover:scale-[1.02] active:scale-[0.98] cursor-pointer" : "bg-gray-700 text-gray-400 cursor-not-allowed"}`}>
+                                            <span className="material-symbols-outlined text-2xl">{isModelReady ? "videocam" : "hourglass_top"}</span>
+                                            {isModelReady ? "Start Live Camera" : "Loading AI..."}
+                                        </button>
+                                        <label className={`w-full py-3.5 rounded-2xl text-base font-bold uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-3 border cursor-pointer ${isModelReady ? "bg-white/5 border-white/15 text-white hover:bg-white/10 active:scale-[0.98]" : "bg-gray-800 border-gray-700 text-gray-500 pointer-events-none"}`}>
+                                            <span className="material-symbols-outlined text-xl text-blue-400">upload_file</span>Upload Video File
+                                            <input type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} disabled={!isModelReady} />
+                                        </label>
+                                    </div>
+                                    <p className="text-center text-white/30 text-xs">💡 Stand 2-3 meters from camera for best results</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* ── Mobile Bottom HUD ── */}
+                    {isTrackingStarted && (
+                        <div className="lg:hidden relative z-20 mt-auto p-3 pb-4">
+                            <div className="bg-black/75 backdrop-blur-xl rounded-2xl border border-white/10 p-3 shadow-xl">
+                                <div className="flex items-center gap-3">
+                                    <div className={`shrink-0 w-16 h-16 rounded-2xl flex flex-col items-center justify-center ${isGoodForm ? "bg-primary/15 border border-primary/30" : "bg-red-500/15 border border-red-500/30"}`}>
+                                        <span className={`text-2xl font-black leading-none ${isGoodForm ? "text-primary" : "text-red-400"}`}>{formScore}<span className="text-[10px]">%</span></span>
+                                        <span className={`text-[8px] uppercase tracking-wider font-bold ${isGoodForm ? "text-primary/70" : "text-red-400/70"}`}>Form</span>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-1.5 mb-0.5">
+                                            <span className={`material-symbols-outlined text-base ${isGoodForm ? "text-primary" : "text-red-400"}`}>{isGoodForm ? "check_circle" : "warning"}</span>
+                                            <span className={`font-bold text-sm truncate ${isGoodForm ? "text-primary" : "text-red-300"}`}>{feedbackTitle}</span>
+                                        </div>
+                                        <p className={`text-xs leading-tight line-clamp-2 ${isGoodForm ? "text-white/60" : "text-red-200/80"}`}>{feedbackDetail}</p>
+                                    </div>
+                                    <div className="shrink-0 text-center">
+                                        <span className="text-blue-400 font-black text-2xl leading-none">{currentReps}</span>
+                                        <span className="text-white/40 text-xs font-medium">/{repGoal}</span>
+                                        <div className="text-[8px] text-white/40 uppercase tracking-wider font-bold">Reps</div>
+                                    </div>
+                                </div>
+                                <Link href="/summary" onClick={endWorkoutData}
+                                    className="mt-3 w-full h-12 bg-red-600/90 hover:bg-red-500 active:scale-[0.98] transition-all rounded-xl text-white font-bold text-sm shadow-lg border border-red-500/40 flex items-center justify-center gap-2 cursor-pointer">
+                                    <span className="material-symbols-outlined text-lg">stop_circle</span>END WORKOUT
+                                </Link>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* ── Desktop Side Panel ── */}
+                {isTrackingStarted && (
+                    <aside className="hidden lg:flex flex-col w-80 xl:w-96 bg-[#0a0a0a] border-l border-white/5 p-5 xl:p-6 gap-5 overflow-y-auto">
+                        <div className="flex items-center gap-3 bg-white/5 rounded-2xl p-4 border border-white/5">
+                            <span className="material-symbols-outlined text-primary text-3xl">fitness_center</span>
+                            <div>
+                                <h3 className="text-white font-bold text-lg leading-tight">{exerciseName}</h3>
+                                <p className="text-white/40 text-xs">AI-Powered Form Analysis</p>
+                            </div>
+                        </div>
+
+                        <div className={`rounded-2xl p-5 border text-center ${isGoodForm ? "bg-primary/10 border-primary/20" : "bg-red-500/10 border-red-500/20"}`}>
+                            <span className={`text-[10px] uppercase tracking-[0.2em] font-bold ${isGoodForm ? "text-primary/60" : "text-red-400/60"}`}>Form Score</span>
+                            <div className={`text-6xl font-black leading-none mt-1 ${isGoodForm ? "text-primary" : "text-red-400"}`}>{formScore}<span className="text-xl">%</span></div>
+                        </div>
+
+                        <div className={`flex items-start gap-3 rounded-2xl p-4 border ${isGoodForm ? "bg-primary/5 border-primary/20" : "bg-red-500/5 border-red-500/20"}`}>
+                            <span className={`material-symbols-outlined text-2xl shrink-0 mt-0.5 ${isGoodForm ? "text-primary" : "text-red-400"}`}>{isGoodForm ? "check_circle" : "warning"}</span>
+                            <div className="min-w-0">
+                                <p className={`font-bold text-sm ${isGoodForm ? "text-primary" : "text-red-300"}`}>{feedbackTitle}</p>
+                                <p className={`text-xs mt-1 leading-relaxed ${isGoodForm ? "text-white/50" : "text-red-200/70"}`}>{feedbackDetail}</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-white/5 rounded-2xl p-4 border border-white/5 text-center">
+                                <span className={`material-symbols-outlined text-xl ${isGoodForm ? "text-primary" : "text-orange-400"}`}>health_and_safety</span>
+                                <p className="text-white font-bold text-sm mt-1">{isGoodForm ? "Low Risk" : "High Risk"}</p>
+                                <p className="text-white/30 text-[10px] uppercase tracking-wider mt-0.5">Injury Risk</p>
+                            </div>
+                            <div className="bg-white/5 rounded-2xl p-4 border border-white/5 text-center">
+                                <span className="material-symbols-outlined text-xl text-blue-400">repeat</span>
+                                <p className="text-white font-bold text-sm mt-1"><span className="text-blue-400 text-xl font-black">{currentReps}</span> / {repGoal}</p>
+                                <p className="text-white/30 text-[10px] uppercase tracking-wider mt-0.5">Repetitions</p>
+                            </div>
+                        </div>
+
+                        <div className="mt-auto">
+                            <Link href="/summary" onClick={endWorkoutData}
+                                className="w-full h-14 bg-red-600/90 hover:bg-red-500 active:scale-[0.98] transition-all rounded-2xl text-white font-black text-base shadow-lg border border-red-500/40 flex items-center justify-center gap-3 cursor-pointer">
+                                <span className="material-symbols-outlined text-2xl">stop_circle</span>END WORKOUT
+                            </Link>
+                        </div>
+                    </aside>
                 )}
             </div>
         </div>
@@ -658,3 +590,4 @@ export default function CameraPage() {
         </Suspense>
     );
 }
+
