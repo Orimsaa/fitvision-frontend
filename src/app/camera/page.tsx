@@ -197,6 +197,9 @@ function CameraContent() {
 
                 if (results.image) {
                     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+                } else if (videoElement && videoElement.videoWidth > 0) {
+                    // Fallback: draw the video element directly (essential for mock video uploads)
+                    canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
                 }
 
                 if (results.poseLandmarks) {
