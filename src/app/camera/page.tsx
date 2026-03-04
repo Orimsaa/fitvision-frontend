@@ -39,6 +39,9 @@ function CameraContent() {
     const chunksRef = useRef<Blob[]>([]);
     const lastErrorTimeRef = useRef<number>(0);
 
+    // Score smoothing: rolling window of last N predictions
+    const recentPredictions = useRef<{ correct: boolean, confidence: number }[]>([]);
+
     // Dynamic AI State
     const [isGoodForm, setIsGoodForm] = useState(true);
     const [feedbackTitle, setFeedbackTitle] = useState("AI Ready");
@@ -298,27 +301,40 @@ function CameraContent() {
 
                                 if (res.ok) {
                                     const data = await res.json();
-                                    setIsGoodForm(data.form_correct);
-                                    setFeedbackDetail(data.feedback);
-                                    setFeedbackTitle(data.form_correct ? (data.error_type === "Correct" ? "Good Form! 💪" : "Good Form") : "Correction Needed");
+                                    console.log('[FV] API Response:', { form_correct: data.form_correct, confidence: data.confidence?.toFixed(3) });
 
-                                    // Convert model confidence into a Form Quality Score
-                                    // When form is CORRECT: high confidence = high score (good!)
-                                    // When form is INCORRECT: high confidence = LOW score (bad form detected strongly!)
+                                    // Push prediction into rolling window (keep last 5)
+                                    recentPredictions.current.push({ correct: data.form_correct, confidence: data.confidence });
+                                    if (recentPredictions.current.length > 5) recentPredictions.current.shift();
+
+                                    // Determine overall form status using MAJORITY VOTE of recent predictions
+                                    const window = recentPredictions.current;
+                                    const incorrectCount = window.filter(p => !p.correct).length;
+                                    const isFormCorrect = incorrectCount < Math.ceil(window.length / 2); // majority must be incorrect to flag it
+
+                                    setIsGoodForm(isFormCorrect);
+                                    setFeedbackDetail(data.feedback);
+                                    setFeedbackTitle(isFormCorrect ? "Good Form! 💪" : "Correction Needed");
+
+                                    // Calculate smoothed score from the rolling window
                                     let rawScore: number;
-                                    if (data.form_correct) {
-                                        rawScore = data.confidence * 100;
-                                        // Clamp to feel natural
+                                    if (isFormCorrect) {
+                                        // Average confidence of correct predictions
+                                        const correctPreds = window.filter(p => p.correct);
+                                        const avgConf = correctPreds.length > 0 ? correctPreds.reduce((s, p) => s + p.confidence, 0) / correctPreds.length : 0.8;
+                                        rawScore = avgConf * 100;
                                         if (rawScore > 98) rawScore = 95 + Math.random() * 4;
                                         if (rawScore < 70) rawScore = 70 + Math.random() * 10;
                                     } else {
-                                        // Invert: more confident it's wrong = lower quality score
-                                        rawScore = (1 - data.confidence) * 100;
-                                        // Clamp between 15-55% for incorrect form 
+                                        // Average confidence of incorrect predictions → invert
+                                        const badPreds = window.filter(p => !p.correct);
+                                        const avgConf = badPreds.length > 0 ? badPreds.reduce((s, p) => s + p.confidence, 0) / badPreds.length : 0.5;
+                                        rawScore = (1 - avgConf) * 100;
                                         rawScore = Math.max(15, Math.min(55, rawScore));
-                                        rawScore += (Math.random() * 6 - 3); // slight variance
+                                        rawScore += (Math.random() * 6 - 3);
                                     }
                                     const currentScore = Math.round(Math.max(0, Math.min(100, rawScore)));
+                                    console.log('[FV] Score Update:', { isFormCorrect, incorrectCount, windowSize: window.length, currentScore });
 
                                     setFormScore(currentScore);
                                     statsRef.current.scores.push(currentScore);
