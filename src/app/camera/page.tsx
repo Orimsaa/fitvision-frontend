@@ -169,29 +169,10 @@ function CameraContent() {
                     canvasElement.width = videoElement.videoWidth;
                     canvasElement.height = videoElement.videoHeight;
 
-                    // Initialize MediaRecorder for Error Replays (once canvas has dimensions)
-                    if (!mediaRecorderRef.current) {
-                        try {
-                            const stream = (canvasElement as any).captureStream(30);
-                            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-
-                            recorder.ondataavailable = (e) => {
-                                if (e.data && e.data.size > 0) {
-                                    chunksRef.current.push(e.data);
-                                    // Keep roughly the last 4 seconds, BUT preserve chunks[0] (WebM header)
-                                    if (chunksRef.current.length > 5) {
-                                        chunksRef.current.splice(1, 1);
-                                    }
-                                }
-                            };
-                            recorder.start(1000); // Trigger dataavailable every 1 second
-                            mediaRecorderRef.current = recorder;
-                            console.log("MediaRecorder started for Replays.");
-                            // Clear previous session errors
-                            sessionStorage.removeItem('fitvision_errors');
-                        } catch (err) {
-                            console.warn("MediaRecorder captureStream not supported in this browser.", err);
-                        }
+                    // Clear previous session errors on first frame
+                    if (!sessionStorage.getItem('fitvision_errors_cleared')) {
+                        sessionStorage.removeItem('fitvision_errors');
+                        sessionStorage.setItem('fitvision_errors_cleared', 'true');
                     }
                 }
 
@@ -339,21 +320,51 @@ function CameraContent() {
                                     setFormScore(currentScore);
                                     statsRef.current.scores.push(currentScore);
 
-                                    // Auto-Capture Error Replay
-                                    if (!data.form_correct) {
+                                    // Auto-Capture Error Replay (On-Demand 3-second recording)
+                                    if (!isFormCorrect) { // use the smoothed isFormCorrect instead of data.form_correct
                                         const now = Date.now();
-                                        if (now - lastErrorTimeRef.current > 6000 && chunksRef.current.length > 0) {
+                                        // Wait at least 6 seconds between captures to avoid spam
+                                        if (now - lastErrorTimeRef.current > 6000) {
                                             lastErrorTimeRef.current = now;
-                                            const blob = new Blob(chunksRef.current, { type: 'video/webm' });
-                                            const url = URL.createObjectURL(blob);
-                                            const errorRecord = {
-                                                url,
-                                                title: data.error_type || "Correction Needed",
-                                                detail: data.feedback,
-                                                time: new Date().toLocaleTimeString()
-                                            };
-                                            const prevErrors = JSON.parse(sessionStorage.getItem('fitvision_errors') || '[]');
-                                            sessionStorage.setItem('fitvision_errors', JSON.stringify([...prevErrors, errorRecord]));
+
+                                            try {
+                                                if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+                                                    mediaRecorderRef.current.stop();
+                                                }
+                                                const stream = (canvasElement as any).captureStream(30);
+                                                const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+                                                const chunks: Blob[] = [];
+
+                                                recorder.ondataavailable = (e) => {
+                                                    if (e.data.size > 0) chunks.push(e.data);
+                                                };
+
+                                                recorder.onstop = () => {
+                                                    if (chunks.length === 0) return;
+                                                    const blob = new Blob(chunks, { type: 'video/webm' });
+                                                    const url = URL.createObjectURL(blob);
+                                                    const errorRecord = {
+                                                        url,
+                                                        title: data.error_type || "Correction Needed",
+                                                        detail: data.feedback,
+                                                        time: new Date().toLocaleTimeString()
+                                                    };
+                                                    const prevErrors = JSON.parse(sessionStorage.getItem('fitvision_errors') || '[]');
+                                                    sessionStorage.setItem('fitvision_errors', JSON.stringify([...prevErrors, errorRecord]));
+                                                };
+
+                                                recorder.start();
+                                                mediaRecorderRef.current = recorder;
+
+                                                // Stop recording after 3 seconds
+                                                setTimeout(() => {
+                                                    if (recorder.state !== 'inactive') {
+                                                        recorder.stop();
+                                                    }
+                                                }, 3000);
+                                            } catch (err) {
+                                                console.warn("Failed to start on-demand MediaRecorder", err);
+                                            }
                                         }
                                     }
                                 } else {
