@@ -22,6 +22,8 @@ function CameraContent() {
     const [repGoal, setRepGoal] = useState(repsParam);
     const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
     const [isTrackingStarted, setIsTrackingStarted] = useState(false);
+    const isTrackingStartedRef = useRef(false);
+
     const [countdown, setCountdown] = useState<number | null>(null);
     const [currentReps, setCurrentReps] = useState(0);
 
@@ -70,6 +72,7 @@ function CameraContent() {
 
         isMockVideoPlaying.current = true;
         setIsTrackingStarted(true);
+        isTrackingStartedRef.current = true;
         setFeedbackDetail("Processing Simulation...");
 
         videoElement.play();
@@ -202,7 +205,7 @@ function CameraContent() {
 
                     frameCount++;
                     // Run inference every 6 frames to keep real-time UI smooth AND only if tracking has started
-                    if (frameCount % 6 === 0 && !isPredicting && isTrackingStarted) {
+                    if (frameCount % 6 === 0 && !isPredicting && isTrackingStartedRef.current) {
                         isPredicting = true;
 
                         const lm = results.poseLandmarks;
@@ -464,6 +467,7 @@ function CameraContent() {
                                             clearInterval(timer);
                                             setCountdown(null);
                                             setIsTrackingStarted(true);
+                                            isTrackingStartedRef.current = true;
                                         }
                                     }, 1000);
                                 }}
