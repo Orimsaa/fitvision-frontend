@@ -191,10 +191,46 @@ function CameraContent() {
                         // Fire and forget! Do not await this block in the main onResults thread to avoid freezing the camera canvas.
                         (async () => {
                             try {
+                                let payload: any;
+                                if (exercise === 'squat') {
+                                    const l_shoulder = lm[11], r_shoulder = lm[12];
+                                    const l_hip = lm[23], r_hip = lm[24];
+                                    const l_knee = lm[25], r_knee = lm[26];
+                                    const l_ankle = lm[27], r_ankle = lm[28];
+                                    const l_foot = lm[31] || lm[27], r_foot = lm[32] || lm[28]; // Fallback to ankle if foot not visible
+
+                                    const mid_hip = { x: (l_hip.x + r_hip.x) / 2, y: (l_hip.y + r_hip.y) / 2 };
+                                    const mid_shoulder = { x: (l_shoulder.x + r_shoulder.x) / 2, y: (l_shoulder.y + r_shoulder.y) / 2 };
+                                    const vertical = { x: mid_hip.x, y: mid_hip.y - 1.0 }; // Vector straight up since Y goes down
+
+                                    const spine_angle = calculateAngle(vertical, mid_hip, mid_shoulder);
+                                    const left_knee_angle = calculateAngle(l_hip, l_knee, l_ankle);
+                                    const right_knee_angle = calculateAngle(r_hip, r_knee, r_ankle);
+                                    const left_hip_angle = calculateAngle(l_shoulder, l_hip, l_knee);
+                                    const right_hip_angle = calculateAngle(r_shoulder, r_hip, r_knee);
+
+                                    payload = {
+                                        left_knee_angle: left_knee_angle,
+                                        right_knee_angle: right_knee_angle,
+                                        left_hip_angle: left_hip_angle,
+                                        right_hip_angle: right_hip_angle,
+                                        left_ankle_angle: calculateAngle(l_knee, l_ankle, l_foot),
+                                        right_ankle_angle: calculateAngle(r_knee, r_ankle, r_foot),
+                                        spine_angle: spine_angle,
+                                        torso_lean: spine_angle,
+                                        left_knee_lateral: l_knee.x - l_ankle.x,
+                                        right_knee_lateral: r_ankle.x - r_knee.x,
+                                        symmetry_score: Math.abs(left_knee_angle - right_knee_angle) + Math.abs(left_hip_angle - right_hip_angle),
+                                        hip_depth: mid_hip.y
+                                    };
+                                } else {
+                                    payload = { features };
+                                }
+
                                 const res = await fetch(`${API_BASE_URL}/predict/${exercise}`, {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ features })
+                                    body: JSON.stringify(payload)
                                 });
 
                                 if (res.ok) {
