@@ -1,6 +1,6 @@
 "use client";
 import DashboardLayout from "@/components/DashboardLayout";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import anime from "animejs";
 import { useLanguage } from "@/context/LanguageContext";
@@ -9,7 +9,7 @@ export default function HistoryPage() {
     const { t } = useLanguage();
     const router = useRouter();
     const [history, setHistory] = useState<any[]>([]);
-    const [isHeatmapMenuOpen, setIsHeatmapMenuOpen] = useState(false);
+    const [filter, setFilter] = useState("all");
 
     useEffect(() => {
         const stored = JSON.parse(localStorage.getItem('fitvision_history') || '[]');
@@ -24,267 +24,263 @@ export default function HistoryPage() {
             delay: anime.stagger(100, { start: 100 })
         });
     }, []);
+
+    // Computed stats from real data
+    const stats = useMemo(() => {
+        if (history.length === 0) return { avg: 0, total: 0, best: 0, totalReps: 0, totalErrors: 0 };
+        const avg = Math.round(history.reduce((a, s) => a + (s.avgScore || 0), 0) / history.length);
+        const best = Math.max(...history.map(s => s.avgScore || 0));
+        const totalReps = history.reduce((a, s) => a + (s.completedReps || 0), 0);
+        const totalErrors = history.reduce((a, s) => a + (s.errorCount || 0), 0);
+        return { avg, total: history.length, best, totalReps, totalErrors };
+    }, [history]);
+
+    // Filtered sessions
+    const filteredSessions = useMemo(() => {
+        if (filter === "all") return history;
+        return history.filter(s => s.exercise?.toLowerCase() === filter.toLowerCase());
+    }, [history, filter]);
+
+    // Build dynamic chart points from recent sessions (up to 10)
+    const chartData = useMemo(() => {
+        const recent = [...history].reverse().slice(0, 10);
+        if (recent.length === 0) return { path: "", areaPath: "", points: [] as { x: number; y: number; score: number }[] };
+        const w = 1000;
+        const h = 200;
+        const padding = 20;
+        const step = recent.length > 1 ? (w - padding * 2) / (recent.length - 1) : 0;
+        const pts = recent.map((s, i) => ({
+            x: padding + i * step,
+            y: h - ((s.avgScore || 0) / 100) * (h - padding * 2) - padding,
+            score: s.avgScore || 0,
+        }));
+
+        // Build the SVG path
+        let line = `M${pts[0].x},${pts[0].y}`;
+        for (let i = 1; i < pts.length; i++) {
+            const prevPt = pts[i - 1];
+            const cp1x = prevPt.x + (pts[i].x - prevPt.x) * 0.4;
+            const cp2x = prevPt.x + (pts[i].x - prevPt.x) * 0.6;
+            line += ` C${cp1x},${prevPt.y} ${cp2x},${pts[i].y} ${pts[i].x},${pts[i].y}`;
+        }
+        const area = `${line} V${h} H${pts[0].x} Z`;
+        return { path: line, areaPath: area, points: pts };
+    }, [history]);
+
+    // Exercise icon mapping
+    const getExerciseIcon = (exercise: string) => {
+        const e = exercise?.toLowerCase() || '';
+        if (e.includes('bench')) return 'airline_seat_flat';
+        if (e.includes('squat')) return 'downhill_skiing';
+        return 'fitness_center';
+    };
+
+    const getScoreColor = (score: number) => {
+        if (score >= 90) return 'text-primary drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]';
+        if (score >= 70) return 'text-yellow-400';
+        return 'text-red-400';
+    };
+
+    const getScoreBg = (score: number) => {
+        if (score >= 90) return 'from-primary/20 to-transparent';
+        if (score >= 70) return 'from-yellow-400/20 to-transparent';
+        return 'from-red-400/20 to-transparent';
+    };
+
     return (
         <>
             <DashboardLayout>
-                <div className="max-w-[1200px] mx-auto p-6 md:p-10 flex flex-col gap-8 pb-20">
-                    {/* Premium Header Section */}
-                    <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-2 animate-stagger-history opacity-0">
-                        <div className="flex flex-col gap-2">
-                            <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 flex items-center gap-3">
-                                <span className="material-symbols-outlined text-primary text-4xl md:text-5xl drop-shadow-[0_0_12px_rgba(57,255,20,0.4)]">history</span>
+                <div className="max-w-[1200px] mx-auto p-5 md:p-10 flex flex-col gap-6 pb-24">
+
+                    {/* Header */}
+                    <header className="flex flex-col md:flex-row md:items-end justify-between gap-5 animate-stagger-history opacity-0">
+                        <div className="flex flex-col gap-1.5">
+                            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white flex items-center gap-3">
+                                <span className="material-symbols-outlined text-primary text-3xl md:text-4xl drop-shadow-[0_0_12px_rgba(57,255,20,0.4)]">history</span>
                                 {t.history.title}
                             </h1>
-                            <p className="text-slate-400 font-medium flex items-center gap-2">
-                                <span className="material-symbols-outlined text-primary/80 text-sm">insights</span>
-                                {t.history.subtitle}
-                            </p>
+                            <p className="text-slate-400 text-sm font-medium">{t.history.subtitle}</p>
                         </div>
 
                         {/* Filter Pills */}
-                        <div className="flex gap-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-                            <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-black font-semibold hover:bg-primary/90 transition-colors shrink-0">
-                                <span className="material-symbols-outlined text-[20px]">tune</span>
-                                <span>{t.history.filters.all}</span>
-                            </button>
-                            <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-surface-dark border border-white/10 text-white hover:border-primary/50 transition-colors shrink-0">
-                                <span>Deadlift</span>
-                            </button>
-                            <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-surface-dark border border-white/10 text-white hover:border-primary/50 transition-colors shrink-0">
-                                <span>Squat</span>
-                            </button>
-                            <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-surface-dark border border-white/10 text-white hover:border-primary/50 transition-colors shrink-0">
-                                <span>Bench Press</span>
-                            </button>
+                        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                            {["all", "Bench Press", "Squat", "Deadlift"].map(f => (
+                                <button
+                                    key={f}
+                                    onClick={() => setFilter(f)}
+                                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-all whitespace-nowrap ${filter === f
+                                        ? "bg-primary text-black shadow-[0_0_12px_rgba(57,255,20,0.3)]"
+                                        : "bg-white/5 border border-white/10 text-slate-300 hover:border-primary/40 hover:text-white"
+                                        }`}
+                                >
+                                    {f === "all" ? t.history.filters.all : f}
+                                </button>
+                            ))}
                         </div>
                     </header>
 
-                    {/* Top Grid: Chart & Key Stats */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Large Chart Card */}
-                        <div className="lg:col-span-3 bg-surface-dark rounded-2xl p-6 md:p-8 border border-white/5 relative overflow-hidden group animate-stagger-history opacity-0">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none"></div>
+                    {/* Stats Cards Row */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                        {[
+                            { icon: "speed", label: "Avg. Score", value: `${stats.avg}%`, color: "text-primary" },
+                            { icon: "emoji_events", label: "Best Score", value: `${stats.best}%`, color: "text-yellow-400" },
+                            { icon: "repeat", label: "Total Reps", value: `${stats.totalReps}`, color: "text-blue-400" },
+                            { icon: "done_all", label: "Sessions", value: `${stats.total}`, color: "text-violet-400" },
+                        ].map((stat, i) => (
+                            <div key={i} className="animate-stagger-history opacity-0 bg-surface-dark rounded-2xl p-4 md:p-5 border border-white/5 relative overflow-hidden group hover:border-primary/20 transition-all">
+                                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-white/[0.02] to-transparent rounded-bl-2xl pointer-events-none"></div>
+                                <span className={`material-symbols-outlined text-xl md:text-2xl mb-2 block ${stat.color}`}>{stat.icon}</span>
+                                <p className="text-xl md:text-2xl font-bold text-white">{stat.value}</p>
+                                <p className="text-xs text-slate-500 font-medium mt-0.5 uppercase tracking-wider">{stat.label}</p>
+                            </div>
+                        ))}
+                    </div>
 
-                            <div className="flex justify-between items-start mb-8 relative z-10">
+                    {/* Chart Card */}
+                    {history.length > 0 && (
+                        <div className="animate-stagger-history opacity-0 bg-surface-dark rounded-2xl p-5 md:p-6 border border-white/5 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full blur-[80px] -mr-24 -mt-24 pointer-events-none"></div>
+                            <div className="flex justify-between items-center mb-4 relative z-10">
                                 <div>
-                                    <h2 className="text-xl font-semibold text-white mb-1">{t.history.chart.title}</h2>
-                                    <p className="text-slate-400 text-sm">{t.history.chart.subtitle}</p>
+                                    <h2 className="text-lg font-semibold text-white">{t.history.chart.title}</h2>
+                                    <p className="text-slate-500 text-xs">{history.length} sessions · Last 10 shown</p>
                                 </div>
-                                <div className="text-right">
-                                    <div className="text-3xl font-bold text-white flex items-center justify-end gap-2">
-                                        92%
-                                        <span className="text-primary text-sm font-medium bg-primary/10 px-2 py-1 rounded-md flex items-center">
-                                            <span className="material-symbols-outlined text-[16px] mr-1">trending_up</span>
-                                            +12%
-                                        </span>
-                                    </div>
-                                    <p className="text-primary text-sm font-medium mt-1">{t.history.chart.progress}</p>
+                                <div className={`flex items-center gap-1.5 text-sm font-semibold ${stats.avg >= 80 ? 'text-primary' : 'text-yellow-400'}`}>
+                                    <span className="material-symbols-outlined text-base">trending_up</span>
+                                    {stats.avg}% avg
                                 </div>
                             </div>
-
-                            {/* Custom SVG Chart */}
-                            <div className="w-full h-[240px] relative z-10">
-                                <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 1000 240">
-                                    {/* Gradient Defs */}
+                            <div className="w-full h-[180px] relative z-10">
+                                <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 1000 200">
                                     <defs>
-                                        <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
-                                            <stop offset="0%" stopColor="#39FF14" stopOpacity="0.2"></stop>
+                                        <linearGradient id="chartGradient2" x1="0" x2="0" y1="0" y2="1">
+                                            <stop offset="0%" stopColor="#39FF14" stopOpacity="0.15"></stop>
                                             <stop offset="100%" stopColor="#39FF14" stopOpacity="0"></stop>
                                         </linearGradient>
                                     </defs>
-
-                                    {/* Grid Lines */}
-                                    <line stroke="#333" strokeDasharray="4 4" strokeWidth="1" x1="0" x2="1000" y1="200" y2="200"></line>
-                                    <line stroke="#333" strokeDasharray="4 4" strokeWidth="1" x1="0" x2="1000" y1="100" y2="100"></line>
-                                    <line stroke="#333" strokeDasharray="4 4" strokeWidth="1" x1="0" x2="1000" y1="0" y2="0"></line>
-
-                                    {/* The Area Fill */}
-                                    <path
-                                        d="M0,180 C100,180 150,120 250,130 C350,140 400,80 500,60 C600,40 650,90 750,70 C850,50 900,20 1000,10 V240 H0 Z"
-                                        fill="url(#chartGradient)"
-                                    ></path>
-
-                                    {/* The Line */}
-                                    <path
-                                        className="drop-shadow-[0_0_10px_rgba(57,255,20,0.5)]"
-                                        d="M0,180 C100,180 150,120 250,130 C350,140 400,80 500,60 C600,40 650,90 750,70 C850,50 900,20 1000,10"
-                                        fill="none"
-                                        stroke="#39FF14"
-                                        strokeLinecap="round"
-                                        strokeWidth="3"
-                                        vectorEffect="non-scaling-stroke"
-                                    ></path>
-
-                                    {/* Data Points */}
-                                    <circle cx="250" cy="130" fill="#121212" r="4" stroke="#39FF14" strokeWidth="2"></circle>
-                                    <circle cx="500" cy="60" fill="#121212" r="4" stroke="#39FF14" strokeWidth="2"></circle>
-                                    <circle cx="750" cy="70" fill="#121212" r="4" stroke="#39FF14" strokeWidth="2"></circle>
-                                    <circle className="animate-pulse" cx="1000" cy="10" fill="#39FF14" r="6"></circle>
+                                    {/* Faint grid lines */}
+                                    {[0, 50, 100, 150, 200].map(y => (
+                                        <line key={y} stroke="#ffffff08" strokeWidth="1" x1="0" x2="1000" y1={y} y2={y} />
+                                    ))}
+                                    {/* Area */}
+                                    {chartData.areaPath && <path d={chartData.areaPath} fill="url(#chartGradient2)" />}
+                                    {/* Line */}
+                                    {chartData.path && (
+                                        <path
+                                            d={chartData.path}
+                                            fill="none"
+                                            stroke="#39FF14"
+                                            strokeLinecap="round"
+                                            strokeWidth="2.5"
+                                            vectorEffect="non-scaling-stroke"
+                                            className="drop-shadow-[0_0_6px_rgba(57,255,20,0.5)]"
+                                        />
+                                    )}
+                                    {/* Data points */}
+                                    {chartData.points.map((pt, i) => (
+                                        <g key={i}>
+                                            <circle cx={pt.x} cy={pt.y} fill="#0a0f0a" r="5" stroke="#39FF14" strokeWidth="2" />
+                                            {i === chartData.points.length - 1 && (
+                                                <circle cx={pt.x} cy={pt.y} fill="#39FF14" r="4" className="animate-pulse" />
+                                            )}
+                                        </g>
+                                    ))}
                                 </svg>
                             </div>
-
-                            {/* X Axis Labels */}
-                            <div className="flex justify-between mt-4 text-xs font-medium text-slate-500 uppercase tracking-wider">
-                                <span>Week 1</span>
-                                <span>Week 2</span>
-                                <span>Week 3</span>
-                                <span>Week 4</span>
-                            </div>
                         </div>
-                    </div>
+                    )}
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Left Column: Heatmap */}
-                        <div className="lg:col-span-1 flex flex-col gap-6 animate-stagger-history opacity-0">
-                            <div className="bg-surface-dark rounded-2xl p-6 border border-white/5 h-full">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-lg font-bold text-white">{t.history.heatmap.title}</h3>
-                                    <div className="relative">
-                                        <button
-                                            onClick={() => setIsHeatmapMenuOpen(!isHeatmapMenuOpen)}
-                                            className="text-slate-400 hover:text-white transition-colors flex items-center justify-center size-8 rounded-full hover:bg-white/5"
-                                        >
-                                            <span className="material-symbols-outlined">more_horiz</span>
-                                        </button>
+                    {/* Session List */}
+                    <div className="flex flex-col gap-3">
+                        <h3 className="text-lg font-bold text-white flex items-center gap-2 animate-stagger-history opacity-0">
+                            <span className="material-symbols-outlined text-primary text-xl">list_alt</span>
+                            {t.history.pastSessions.title}
+                            {filteredSessions.length > 0 && (
+                                <span className="text-xs text-slate-500 font-medium ml-1">({filteredSessions.length})</span>
+                            )}
+                        </h3>
 
-                                        {isHeatmapMenuOpen && (
-                                            <>
-                                                {/* Backdrop to close menu when clicking outside */}
-                                                <div
-                                                    className="fixed inset-0 z-40"
-                                                    onClick={() => setIsHeatmapMenuOpen(false)}
-                                                ></div>
-
-                                                {/* Dropdown Menu */}
-                                                <div className="absolute right-0 top-full mt-2 w-48 bg-surface-darker border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden py-1 animate-fade-in-up">
-                                                    <button
-                                                        onClick={() => setIsHeatmapMenuOpen(false)}
-                                                        className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-3"
-                                                    >
-                                                        <span className="material-symbols-outlined text-[18px]">calendar_month</span> {t.history.heatmap.viewYear}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setIsHeatmapMenuOpen(false)}
-                                                        className="w-full text-left px-4 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-3 border-t border-white/5 mt-1 pt-3"
-                                                    >
-                                                        <span className="material-symbols-outlined text-[18px]">download</span> {t.history.heatmap.exportData}
-                                                    </button>
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Heatmap Grid */}
-                                <div className="flex flex-col w-full overflow-hidden mt-2">
-                                    <div className="flex justify-between text-[10px] text-slate-500 font-medium mb-2 pl-8 pr-2">
-                                        <span>Jan</span>
-                                        <span>Feb</span>
-                                        <span>Mar</span>
-                                    </div>
-                                    <div className="flex items-start gap-2 w-full">
-                                        <div className="flex flex-col justify-between text-[10px] text-slate-500 font-medium h-max gap-[13px] pt-1 sm:pt-1.5 sm:gap-[15px]">
-                                            <span>Mon</span>
-                                            <span>Wed</span>
-                                            <span>Fri</span>
-                                            <span>Sun</span>
-                                        </div>
-                                        <div className="grid grid-rows-7 grid-flow-col gap-1.5 flex-1 overflow-x-auto scrollbar-hide pb-2">
-                                            {[...Array(84)].map((_, i) => {
-                                                const rand = Math.random();
-                                                // Make earlier dates have less activity on average
-                                                const activeLevel = rand + (i / 84) * 0.5;
-                                                const weight =
-                                                    activeLevel > 1.2
-                                                        ? "bg-primary shadow-[0_0_8px_rgba(57,255,20,0.4)]"
-                                                        : activeLevel > 0.9
-                                                            ? "bg-primary/80"
-                                                            : activeLevel > 0.6
-                                                                ? "bg-primary/40"
-                                                                : "bg-surface-darker border border-white/5";
-                                                return <div key={i} className={`rounded-[2px] w-3 h-3 sm:w-4 sm:h-4 shrink-0 transition-colors hover:border hover:border-white ${weight}`}></div>;
-                                            })}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-2 mt-2 justify-end text-xs text-slate-500">
-                                        <span>Less</span>
-                                        <div className="flex gap-1">
-                                            <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-sm bg-surface-darker border border-white/5"></div>
-                                            <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-sm bg-primary/40"></div>
-                                            <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-sm bg-primary/80"></div>
-                                            <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-sm bg-primary shadow-[0_0_5px_rgba(57,255,20,0.3)]"></div>
-                                        </div>
-                                        <span>More</span>
-                                    </div>
-                                </div>
-
-                                {/* Mini Stats below heatmap */}
-                                <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-white/5">
-                                    <div>
-                                        <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">{t.history.heatmap.streak}</p>
-                                        <p className="text-white text-xl font-bold flex items-center gap-1">
-                                            <span className="material-symbols-outlined text-orange-500 text-lg">local_fire_department</span>
-                                            12 {t.history.heatmap.days}
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <p className="text-slate-400 text-xs uppercase tracking-wider mb-1">{t.history.heatmap.totalWorkouts}</p>
-                                        <p className="text-white text-xl font-bold">148</p>
-                                    </div>
-                                </div>
+                        {filteredSessions.length === 0 ? (
+                            <div className="animate-stagger-history opacity-0 flex flex-col items-center justify-center gap-4 py-16 bg-surface-dark rounded-2xl border border-white/5">
+                                <span className="material-symbols-outlined text-5xl text-slate-700">fitness_center</span>
+                                <p className="text-slate-500 font-medium text-sm">{t.history.pastSessions.empty}</p>
+                                <button
+                                    onClick={() => router.push('/camera')}
+                                    className="mt-2 px-6 py-2.5 bg-primary text-black font-bold rounded-xl text-sm hover:shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all active:scale-95"
+                                >
+                                    Start Workout
+                                </button>
                             </div>
-                        </div>
+                        ) : (
+                            filteredSessions.map((session, i) => (
+                                <div
+                                    key={session.id || i}
+                                    onClick={() => {
+                                        sessionStorage.setItem('fitvision_session_stats', JSON.stringify(session));
+                                        sessionStorage.setItem('fitvision_errors', JSON.stringify(session.errors || []));
+                                        router.push('/summary');
+                                    }}
+                                    className="animate-stagger-history opacity-0 group bg-surface-dark hover:bg-white/[0.03] border border-white/5 hover:border-primary/30 rounded-2xl p-4 md:p-5 transition-all cursor-pointer relative overflow-hidden"
+                                >
+                                    {/* Accent gradient on hover */}
+                                    <div className={`absolute inset-0 bg-gradient-to-r ${getScoreBg(session.avgScore)} opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none`}></div>
 
-                        {/* Right Column: Past Sessions List */}
-                        <div className="lg:col-span-2">
-                            <div className="flex flex-col gap-4">
-                                <h3 className="text-xl font-bold text-white mb-2">{t.history.pastSessions.title}</h3>
-
-                                {history.length === 0 ? (
-                                    <div className="text-slate-400 p-4 border border-white/5 rounded-xl text-center">{t.history.pastSessions.empty}</div>
-                                ) : history.map((session, i) => (
-                                    <div
-                                        onClick={() => {
-                                            sessionStorage.setItem('fitvision_session_stats', JSON.stringify(session));
-                                            sessionStorage.setItem('fitvision_errors', JSON.stringify(session.errors || []));
-                                            router.push('/summary');
-                                        }}
-                                        key={session.id || i}
-                                        className="animate-stagger-history opacity-0 group flex flex-col sm:flex-row items-center gap-4 bg-surface-dark hover:bg-surface-dark-hover border border-white/5 hover:border-primary/30 p-4 rounded-xl transition-all cursor-pointer flex-shrink-0"
-                                    >
-                                        <div className="relative w-full sm:w-20 h-20 sm:h-20 shrink-0 rounded-lg overflow-hidden bg-black flex items-center justify-center border border-white/5">
-                                            <span className="material-symbols-outlined text-4xl text-slate-500 group-hover:text-primary transition-all">fitness_center</span>
+                                    <div className="relative z-10 flex items-center gap-4">
+                                        {/* Exercise Icon */}
+                                        <div className="hidden sm:flex items-center justify-center w-14 h-14 rounded-xl bg-white/5 border border-white/10 group-hover:border-primary/30 group-hover:bg-primary/10 transition-all shrink-0">
+                                            <span className="material-symbols-outlined text-2xl text-slate-400 group-hover:text-primary transition-colors">
+                                                {getExerciseIcon(session.exercise)}
+                                            </span>
                                         </div>
-                                        <div className="flex flex-col flex-1 w-full text-center sm:text-left">
-                                            <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start mb-1">
-                                                <h4 className="text-lg font-bold text-white group-hover:text-primary transition-colors capitalize">
+
+                                        {/* Middle Info */}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h4 className="text-base font-bold text-white group-hover:text-primary transition-colors capitalize truncate">
                                                     {session.exercise}
                                                 </h4>
-                                                <span className="text-xs text-slate-400 bg-white/5 px-2 py-1 rounded">
-                                                    {new Date(session.timestamp).toLocaleDateString()} {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {session.errorCount === 0 && (
+                                                    <span className="px-2 py-0.5 text-[10px] font-bold bg-primary/15 text-primary rounded-full border border-primary/20 shrink-0">
+                                                        PERFECT
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                                                <span className="flex items-center gap-1">
+                                                    <span className="material-symbols-outlined text-[14px]">schedule</span>
+                                                    {new Date(session.timestamp).toLocaleDateString()} · {new Date(session.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </span>
-                                            </div>
-                                            <div className="flex justify-center sm:justify-start gap-4 text-sm text-slate-400 mt-1">
-                                                {session.errorCount === 0 ? (
-                                                    <span className="text-primary font-medium text-xs">{t.history.pastSessions.perfectForm}</span>
-                                                ) : (
-                                                    <span className="text-orange-400 font-medium text-xs">{session.errorCount} {t.history.pastSessions.mistakes}</span>
-                                                )}
                                                 {session.completedReps > 0 && (
-                                                    <span className="text-blue-400 font-medium text-xs">{session.completedReps} Reps</span>
+                                                    <span className="flex items-center gap-1 text-blue-400/80">
+                                                        <span className="material-symbols-outlined text-[14px]">replay</span>
+                                                        {session.completedReps} reps
+                                                    </span>
+                                                )}
+                                                {session.errorCount > 0 && (
+                                                    <span className="flex items-center gap-1 text-orange-400/80">
+                                                        <span className="material-symbols-outlined text-[14px]">warning</span>
+                                                        {session.errorCount} {t.history.pastSessions.mistakes.toLowerCase()}
+                                                    </span>
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="flex flex-col items-center justify-center pl-0 sm:pl-4 border-l-0 sm:border-l border-white/10 w-full sm:w-auto">
-                                            <span className="text-xs text-slate-400 uppercase tracking-wider mb-1">{t.history.pastSessions.accuracy}</span>
-                                            <span className={`text-2xl font-bold ${session.avgScore > 90 ? 'text-primary drop-shadow-[0_0_5px_rgba(57,255,20,0.5)]' : 'text-white'}`}>{session.avgScore}%</span>
-                                        </div>
-                                    </div>
-                                ))}
 
-                            </div>
-                        </div>
+                                        {/* Score Badge */}
+                                        <div className="flex flex-col items-center gap-0.5 shrink-0 pl-3 border-l border-white/5">
+                                            <span className={`text-2xl md:text-3xl font-black tabular-nums ${getScoreColor(session.avgScore)}`}>
+                                                {session.avgScore}<span className="text-sm font-semibold">%</span>
+                                            </span>
+                                            <span className="text-[10px] text-slate-600 uppercase tracking-wider font-medium">{t.history.pastSessions.accuracy}</span>
+                                        </div>
+
+                                        {/* Arrow */}
+                                        <span className="material-symbols-outlined text-slate-600 group-hover:text-primary group-hover:translate-x-1 transition-all hidden md:block">
+                                            chevron_right
+                                        </span>
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
             </DashboardLayout>
