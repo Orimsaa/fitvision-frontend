@@ -2,11 +2,11 @@
 
 import React, { useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import anime from "animejs";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
-    const router = useRouter();
+    const { login } = useAuth();
 
     useEffect(() => {
         // Entrance animation
@@ -22,8 +22,7 @@ export default function LoginPage() {
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        // Simulate login and redirect to dashboard
-        router.push("/");
+        login();
     };
 
     return (

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import Sidebar from "@/components/Sidebar";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { AuthProvider } from "@/context/AuthContext";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -31,8 +32,10 @@ export default function RootLayout({
         className={`${spaceGrotesk.variable} ${spaceGrotesk.className} antialiased font-sans text-slate-100 bg-background-dark min-h-screen font-display`}
       >
         <LanguageProvider>
-          <Sidebar />
-          {children}
+          <AuthProvider>
+            <Sidebar />
+            {children}
+          </AuthProvider>
         </LanguageProvider>
       </body>
     </html>

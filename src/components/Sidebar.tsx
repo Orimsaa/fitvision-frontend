@@ -4,10 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Sidebar() {
     const pathname = usePathname();
     const { t } = useLanguage();
+    const { logout } = useAuth();
 
     const defaultAvatar = 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuA27nj0lO-CFiCbHV5WY7JdyYn0KZLxAcFyJfVlyHj0s8t2zkyMdrnJdKOFlpT3OeeTkIaYinssvIiwQVZd-PEonFIwPa0-_FQUoPGOdgmCFFxMPIPpveKaTcSIyqLZWjySB7ZZu58OHONYt9rfPco2VI4-bPPW5TsvxabFyx6CrLU-w9Aur278J-pkfDic-F8A-M_pTy88Hs1oo_SyobbHM0vf6Y9bWuieMdksrqbjtj4dqH1_j_Y_XnEUItFA9x07ONGY8FTeK-H6")';
     const [avatar, setAvatar] = useState(defaultAvatar);
@@ -112,6 +114,13 @@ export default function Sidebar() {
                             <span className={`material-symbols-outlined ${pathname === "/settings" ? "filled" : ""}`}>settings</span>
                             <span className="font-medium">{t.nav.settings}</span>
                         </Link>
+                        <button
+                            onClick={logout}
+                            className="flex items-center gap-4 px-4 py-3 rounded-xl transition-colors text-slate-400 hover:text-red-400 hover:bg-red-500/10 text-left mt-4"
+                        >
+                            <span className="material-symbols-outlined">logout</span>
+                            <span className="font-medium">Logout</span>
+                        </button>
                     </div>
                 </div>
                 <div className="flex items-center gap-3 px-4 py-4 rounded-2xl bg-surface-dark border border-white/5">
@@ -170,6 +179,13 @@ export default function Sidebar() {
                     <span className="material-symbols-outlined">settings</span>
                     <span className="text-[10px] font-medium">{t.nav.settings}</span>
                 </Link>
+                <button
+                    onClick={logout}
+                    className="flex flex-col items-center gap-1 transition-colors text-slate-400 hover:text-red-400"
+                >
+                    <span className="material-symbols-outlined">logout</span>
+                    <span className="text-[10px] font-medium">Logout</span>
+                </button>
             </nav>
         </>
     );
