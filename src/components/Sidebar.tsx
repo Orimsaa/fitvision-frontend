@@ -105,6 +105,16 @@ export default function Sidebar() {
                             <span className="font-medium">{t.nav.stats}</span>
                         </Link>
                         <Link
+                            className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${pathname === "/chat"
+                                ? "bg-primary/10 text-primary border border-primary/20"
+                                : "text-slate-400 hover:text-white hover:bg-white/5"
+                                }`}
+                            href="/chat"
+                        >
+                            <span className={`material-symbols-outlined ${pathname === "/chat" ? "filled" : ""}`}>smart_toy</span>
+                            <span className="font-medium">AI Coach</span>
+                        </Link>
+                        <Link
                             className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${pathname === "/settings"
                                 ? "bg-primary/10 text-primary border border-primary/20"
                                 : "text-slate-400 hover:text-white hover:bg-white/5"
@@ -170,6 +180,14 @@ export default function Sidebar() {
                 >
                     <span className="material-symbols-outlined">analytics</span>
                     <span className="text-[10px] font-medium">{t.nav.stats}</span>
+                </Link>
+                <Link
+                    href="/chat"
+                    className={`flex flex-col items-center gap-1 transition-colors ${pathname?.startsWith("/chat") ? "text-primary" : "text-slate-400 hover:text-white"
+                        }`}
+                >
+                    <span className="material-symbols-outlined">smart_toy</span>
+                    <span className="text-[10px] font-medium">AI Coach</span>
                 </Link>
                 <Link
                     href="/settings"
