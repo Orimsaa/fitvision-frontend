@@ -26,7 +26,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex min-h-screen w-full flex-col lg:flex-row overflow-hidden bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+        <div className="flex min-h-[100dvh] w-full flex-col lg:flex-row overflow-hidden bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
             {/* Left Column: Hero Typography & Branding */}
             <div className="relative hidden lg:flex lg:w-1/2 flex-col justify-between p-12 overflow-hidden animate-fade-in-up opacity-0 bg-[#0a0f0a]">
                 {/* High-tech abstract background */}
@@ -47,9 +47,25 @@ export default function LoginPage() {
                 </div>
                 {/* Content */}
                 <div className="relative z-20 flex items-center gap-3">
-                    <span className="material-symbols-outlined text-primary text-4xl drop-shadow-[0_0_10px_rgba(60,249,26,0.5)]">monitoring</span>
-                    <h1 className="text-3xl font-black tracking-tighter text-slate-100 uppercase italic">
-                        FitVision<span className="text-primary">.AI</span>
+                    <div className="size-10 text-primary drop-shadow-[0_0_12px_rgba(57,255,20,0.4)]">
+                        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                            <g clipPath="url(#clip0_6_535_lg)">
+                                <path
+                                    clipRule="evenodd"
+                                    d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"
+                                    fill="currentColor"
+                                    fillRule="evenodd"
+                                ></path>
+                            </g>
+                            <defs>
+                                <clipPath id="clip0_6_535_lg">
+                                    <rect fill="white" height="48" width="48"></rect>
+                                </clipPath>
+                            </defs>
+                        </svg>
+                    </div>
+                    <h1 className="text-3xl font-bold tracking-tight text-white mt-1">
+                        FitVision
                     </h1>
                 </div>
                 <div className="relative z-20 max-w-lg">
@@ -74,11 +90,27 @@ export default function LoginPage() {
             </div>
 
             {/* Right Column: Login Form */}
-            <div className="flex w-full lg:w-1/2 flex-col items-center justify-center p-6 lg:p-20 relative bg-[#0a0f0a] z-10">
+            <div className="flex flex-1 w-full lg:w-1/2 flex-col items-center justify-center p-6 lg:p-20 relative bg-[#0a0f0a] z-10">
                 {/* Mobile Logo (Hidden on Desktop) */}
-                <div className="lg:hidden flex items-center gap-2 mb-12 animate-fade-in-up opacity-0">
-                    <span className="material-symbols-outlined text-primary text-3xl drop-shadow-[0_0_10px_rgba(60,249,26,0.5)]">monitoring</span>
-                    <h1 className="text-2xl font-black text-slate-100 italic">FitVision</h1>
+                <div className="lg:hidden flex items-center gap-2 mb-10 animate-fade-in-up opacity-0">
+                    <div className="size-8 text-primary drop-shadow-[0_0_10px_rgba(57,255,20,0.5)]">
+                        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                            <g clipPath="url(#clip0_6_535_md)">
+                                <path
+                                    clipRule="evenodd"
+                                    d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z"
+                                    fill="currentColor"
+                                    fillRule="evenodd"
+                                ></path>
+                            </g>
+                            <defs>
+                                <clipPath id="clip0_6_535_md">
+                                    <rect fill="white" height="48" width="48"></rect>
+                                </clipPath>
+                            </defs>
+                        </svg>
+                    </div>
+                    <h1 className="text-2xl font-bold text-white mt-0.5 tracking-tight">FitVision</h1>
                 </div>
 
                 <div className="w-full max-w-md p-8 lg:p-10 rounded-2xl flex flex-col gap-8 shadow-2xl bg-[#12230f]/60 backdrop-blur-xl border border-primary/10 animate-fade-in-up opacity-0">
