@@ -538,73 +538,109 @@ function CameraContent() {
                         </div>
                     </header>
 
-                    {/* ── Setup Drawer (floats over live camera) ── */}
+                    {/* ── Warmup Overlay ── */}
                     {!isTrackingStarted && (
-                        <div className="absolute inset-0 z-40 flex flex-col justify-end pointer-events-none">
-                            {/* Countdown */}
+                        <div className="absolute inset-0 z-40 flex flex-col">
+                            {/* Countdown overlay */}
                             {countdown !== null && (
-                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-50">
                                     <div className="text-8xl md:text-9xl font-black text-primary drop-shadow-[0_0_40px_rgba(57,255,20,0.6)] animate-pulse">{countdown}</div>
                                 </div>
                             )}
 
-                            {/* Floating bottom card */}
+                            {/* Main warmup card — sits at bottom, semi-transparent */}
                             {countdown === null && (
-                                <div className="pointer-events-auto mx-3 mb-4 md:mx-auto md:w-full md:max-w-md">
-                                    <div className="bg-black/80 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl p-5 flex flex-col gap-4">
-                                        {/* Header row */}
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <h2 className="text-white font-black text-lg leading-none">FitVision</h2>
-                                                <p className="text-white/40 text-xs mt-0.5">Choose exercise & start</p>
+                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/90 to-transparent pt-12 pb-5 px-4 md:px-0">
+                                    <div className="md:max-w-md md:mx-auto flex flex-col gap-4">
+
+                                        {/* ─ Step Progress ─ */}
+                                        <div className="flex items-center gap-2">
+                                            {/* Step 1: Camera */}
+                                            <div className={`flex-1 flex items-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all ${areScriptsLoaded ? "border-primary/30 bg-primary/5 text-primary" : "border-white/10 bg-white/5 text-slate-500"}`}>
+                                                <span className={`text-sm material-symbols-outlined ${areScriptsLoaded ? "text-primary" : "text-slate-600"}`}>
+                                                    {areScriptsLoaded ? "check_circle" : "camera_alt"}
+                                                </span>
+                                                <span>{areScriptsLoaded ? "Camera ✓" : "Camera..."}</span>
                                             </div>
-                                            {/* Server + MediaPipe status pills */}
-                                            <div className="flex items-center gap-1.5">
-                                                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold border ${isModelReady ? "border-primary/30 bg-primary/10 text-primary" : "border-white/10 bg-white/5 text-slate-500"}`}>
-                                                    <span className={`w-1.5 h-1.5 rounded-full ${isModelReady ? "bg-primary" : "bg-slate-500 animate-pulse"}`}></span>
-                                                    Pose
-                                                </div>
-                                                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold border ${isBackendReady ? "border-primary/30 bg-primary/10 text-primary" : "border-orange-400/30 bg-orange-400/5 text-orange-400"}`}>
-                                                    <span className={`w-1.5 h-1.5 rounded-full ${isBackendReady ? "bg-primary" : "bg-orange-400 animate-pulse"}`}></span>
-                                                    {backendStatus === "ready" ? "Server" : backendStatus === "waking" ? "Waking..." : "Server"}
-                                                </div>
+                                            <div className={`w-4 h-px ${isModelReady ? "bg-primary/40" : "bg-white/10"}`}></div>
+                                            {/* Step 2: Pose AI */}
+                                            <div className={`flex-1 flex items-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all ${isModelReady ? "border-primary/30 bg-primary/5 text-primary" : "border-white/10 bg-white/5 text-slate-500"}`}>
+                                                <span className={`text-sm material-symbols-outlined ${isModelReady ? "text-primary" : "text-slate-600 animate-pulse"}`}>
+                                                    {isModelReady ? "check_circle" : "psychology"}
+                                                </span>
+                                                <span>{isModelReady ? "Pose AI ✓" : "Pose AI..."}</span>
+                                            </div>
+                                            <div className={`w-4 h-px ${isBackendReady ? "bg-primary/40" : "bg-white/10"}`}></div>
+                                            {/* Step 3: Server */}
+                                            <div className={`flex-1 flex items-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all ${isBackendReady ? "border-primary/30 bg-primary/5 text-primary" : "border-orange-400/30 bg-orange-400/5 text-orange-300"}`}>
+                                                <span className={`text-sm material-symbols-outlined ${isBackendReady ? "text-primary" : "text-orange-400 animate-pulse"}`}>
+                                                    {isBackendReady ? "check_circle" : "cloud_sync"}
+                                                </span>
+                                                <span>{isBackendReady ? "Server ✓" : backendStatus === "waking" ? "Waking..." : "Server..."}</span>
                                             </div>
                                         </div>
 
-                                        {/* Exercise + rep goal row */}
+                                        {/* Server context message */}
+                                        {!isBackendReady && (
+                                            <div className="flex items-start gap-2 bg-orange-400/5 border border-orange-400/15 rounded-xl px-3 py-2">
+                                                <span className="material-symbols-outlined text-orange-400 text-base mt-0.5 shrink-0">info</span>
+                                                <p className="text-orange-200/60 text-xs leading-relaxed">
+                                                    เซิร์ฟเวอร์ AI กำลังตื่นจากโหมดประหยัดพลังงาน ใช้เวลาประมาณ <span className="text-orange-300 font-bold">30-60 วินาที</span> — เลือกท่าออกกำลังกายระหว่างรอได้เลยครับ
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {/* Exercise selector + reps */}
                                         <div className="flex gap-3">
                                             <div className="flex-1 relative">
+                                                <label className="text-white/40 text-[10px] uppercase tracking-wider font-bold mb-1 block">ท่าออกกำลังกาย</label>
                                                 <select value={currentExercise} onChange={(e) => setCurrentExercise(e.target.value)}
                                                     className="appearance-none w-full bg-white/5 border border-white/10 rounded-xl text-white font-bold py-2.5 pl-3 pr-8 focus:outline-none focus:border-primary cursor-pointer text-sm">
                                                     <option value="benchpress">🏋️ Bench Press</option>
                                                     <option value="squat">🦵 Back Squat</option>
                                                     <option value="deadlift">💪 Deadlift</option>
                                                 </select>
-                                                <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none text-base">expand_more</span>
+                                                <span className="material-symbols-outlined absolute right-2 bottom-2.5 text-white/40 pointer-events-none text-base">expand_more</span>
                                             </div>
-                                            <div className="flex flex-col items-center justify-center bg-white/5 border border-white/10 rounded-xl px-4 min-w-[80px]">
-                                                <div className="flex items-center gap-1">
-                                                    <button onClick={() => setRepGoal(r => Math.max(1, r - 1))} className="text-white/40 hover:text-white text-lg leading-none">−</button>
-                                                    <span className="text-primary font-black text-lg w-6 text-center">{repGoal}</span>
-                                                    <button onClick={() => setRepGoal(r => Math.min(50, r + 1))} className="text-white/40 hover:text-white text-lg leading-none">+</button>
+                                            <div>
+                                                <label className="text-white/40 text-[10px] uppercase tracking-wider font-bold mb-1 block">เป้าหมาย</label>
+                                                <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl px-3 h-[42px]">
+                                                    <button onClick={() => setRepGoal(r => Math.max(1, r - 1))} className="text-white/40 hover:text-white w-6 text-lg font-bold text-center leading-none">−</button>
+                                                    <span className="text-primary font-black text-lg w-7 text-center">{repGoal}</span>
+                                                    <button onClick={() => setRepGoal(r => Math.min(50, r + 1))} className="text-white/40 hover:text-white w-6 text-lg font-bold text-center leading-none">+</button>
                                                 </div>
-                                                <span className="text-white/30 text-[9px] uppercase tracking-wider">Reps</span>
+                                                <label className="text-white/30 text-[9px] text-center block mt-0.5">reps</label>
                                             </div>
                                         </div>
 
                                         {/* Start button */}
-                                        <button onClick={() => {
-                                            setCountdown(3); let count = 3;
-                                            const timer = setInterval(() => { count -= 1; if (count > 0) setCountdown(count); else { clearInterval(timer); setCountdown(null); setIsTrackingStarted(true); isTrackingStartedRef.current = true; } }, 1000);
-                                        }} disabled={!isModelReady || !isBackendReady}
-                                            className={`w-full py-3.5 rounded-2xl text-base font-black uppercase tracking-wider shadow-xl transition-all flex items-center justify-center gap-2 ${isModelReady && isBackendReady ? "bg-primary text-black hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-[0_0_20px_rgba(57,255,20,0.3)]" : "bg-gray-700/80 text-gray-400 cursor-not-allowed"}`}>
-                                            <span className="material-symbols-outlined text-xl">{isModelReady && isBackendReady ? "play_arrow" : "hourglass_top"}</span>
-                                            {isModelReady && isBackendReady ? "Start Analysis" : !isModelReady ? "Loading Pose AI..." : backendStatus === "waking" ? "Waking up server..." : "Connecting to server..."}
+                                        <button
+                                            onClick={() => {
+                                                setCountdown(3); let count = 3;
+                                                const timer = setInterval(() => {
+                                                    count -= 1;
+                                                    if (count > 0) setCountdown(count);
+                                                    else { clearInterval(timer); setCountdown(null); setIsTrackingStarted(true); isTrackingStartedRef.current = true; }
+                                                }, 1000);
+                                            }}
+                                            disabled={!isModelReady || !isBackendReady}
+                                            className={`w-full py-4 rounded-2xl text-base font-black uppercase tracking-widest shadow-xl transition-all flex items-center justify-center gap-2 ${isModelReady && isBackendReady
+                                                ? "bg-primary text-black cursor-pointer hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_25px_rgba(57,255,20,0.35)]"
+                                                : "bg-white/5 border border-white/10 text-slate-500 cursor-not-allowed"
+                                                }`}>
+                                            <span className="material-symbols-outlined text-xl">
+                                                {isModelReady && isBackendReady ? "play_arrow" : "hourglass_top"}
+                                            </span>
+                                            {isModelReady && isBackendReady
+                                                ? "เริ่มวิเคราะห์ท่า"
+                                                : !isModelReady ? "กำลังโหลด Pose AI..."
+                                                    : "รอเซิร์ฟเวอร์พร้อม..."}
                                         </button>
 
                                         {/* Upload fallback */}
-                                        <label className={`w-full py-2.5 rounded-xl text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 border cursor-pointer ${isModelReady ? "bg-white/5 border-white/10 text-white/60 hover:bg-white/10" : "bg-gray-800/50 border-gray-700/50 text-gray-600 pointer-events-none"}`}>
-                                            <span className="material-symbols-outlined text-base text-blue-400">upload_file</span>Upload Video
+                                        <label className={`w-full py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all flex items-center justify-center gap-2 border cursor-pointer ${isModelReady ? "border-white/8 text-white/30 hover:text-white/50 hover:border-white/15" : "border-white/5 text-white/15 pointer-events-none"}`}>
+                                            <span className="material-symbols-outlined text-sm text-blue-400/60">upload_file</span>
+                                            หรืออัปโหลดวิดีโอแทน
                                             <input type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} disabled={!isModelReady} />
                                         </label>
                                     </div>
