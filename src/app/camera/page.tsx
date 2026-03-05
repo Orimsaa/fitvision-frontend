@@ -27,6 +27,9 @@ function CameraContent() {
     const [countdown, setCountdown] = useState<number | null>(null);
     const [currentReps, setCurrentReps] = useState(0);
 
+    const repStateRef = useRef<"up" | "down">("up");
+    const localRepCountRef = useRef<number>(0);
+
     const exerciseName = currentExercise === "squat" ? "Back Squat" : currentExercise === "deadlift" ? "Deadlift" : "Bench Press";
 
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -281,13 +284,13 @@ function CameraContent() {
                         }
 
                         if (mainAngle > upThreshold) { // Top phase
-                            if (repState === "down") {
-                                localRepCount += 1;
-                                setCurrentReps(localRepCount);
+                            if (repStateRef.current === "down") {
+                                localRepCountRef.current += 1;
+                                setCurrentReps(localRepCountRef.current);
                             }
-                            repState = "up";
+                            repStateRef.current = "up";
                         } else if (mainAngle < downThreshold) { // Bottom phase
-                            repState = "down";
+                            repStateRef.current = "down";
                         }
                         // ----------------------------------
 
