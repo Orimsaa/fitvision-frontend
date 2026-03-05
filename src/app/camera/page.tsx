@@ -33,6 +33,8 @@ function CameraContent() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isModelReady, setIsModelReady] = useState(false);
     const [areScriptsLoaded, setAreScriptsLoaded] = useState(false);
+    const [isBackendReady, setIsBackendReady] = useState(false);
+    const [backendStatus, setBackendStatus] = useState<"checking" | "waking" | "ready">("checking");
 
     // Auto-Capture Replay State
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -52,6 +54,33 @@ function CameraContent() {
     // Stats tracking
     const statsRef = useRef({ scores: [] as number[], exerciseName: exerciseName });
     useEffect(() => { statsRef.current.exerciseName = exerciseName; }, [exerciseName]);
+
+    // Ping Render backend until it wakes up
+    useEffect(() => {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://fitvision-ap.onrender.com";
+        let attempts = 0;
+        let stopped = false;
+
+        const ping = async () => {
+            if (stopped) return;
+            try {
+                attempts++;
+                if (attempts > 1) setBackendStatus("waking");
+                const res = await fetch(`${API_BASE_URL}/health`, { signal: AbortSignal.timeout(8000) });
+                if (res.ok) {
+                    setIsBackendReady(true);
+                    setBackendStatus("ready");
+                    return; // done!
+                }
+            } catch {
+                // still waking — ignore error and retry
+            }
+            if (!stopped) setTimeout(ping, 3000);
+        };
+
+        ping();
+        return () => { stopped = true; };
+    }, []);
 
     // Developer Test Mode refs
     const cameraWrapperRef = useRef<any>(null);
@@ -548,11 +577,22 @@ function CameraContent() {
                                         <button onClick={() => {
                                             setCountdown(3); let count = 3;
                                             const timer = setInterval(() => { count -= 1; if (count > 0) setCountdown(count); else { clearInterval(timer); setCountdown(null); setIsTrackingStarted(true); isTrackingStartedRef.current = true; } }, 1000);
-                                        }} disabled={!isModelReady}
-                                            className={`w-full py-4 rounded-2xl text-lg font-black uppercase tracking-wider shadow-xl transition-all flex items-center justify-center gap-3 ${isModelReady ? "bg-primary text-black hover:scale-[1.02] active:scale-[0.98] cursor-pointer" : "bg-gray-700 text-gray-400 cursor-not-allowed"}`}>
-                                            <span className="material-symbols-outlined text-2xl">{isModelReady ? "videocam" : "hourglass_top"}</span>
-                                            {isModelReady ? "Start Live Camera" : "Loading AI..."}
+                                        }} disabled={!isModelReady || !isBackendReady}
+                                            className={`w-full py-4 rounded-2xl text-lg font-black uppercase tracking-wider shadow-xl transition-all flex items-center justify-center gap-3 ${isModelReady && isBackendReady ? "bg-primary text-black hover:scale-[1.02] active:scale-[0.98] cursor-pointer" : "bg-gray-700 text-gray-400 cursor-not-allowed"}`}>
+                                            <span className="material-symbols-outlined text-2xl">{isModelReady && isBackendReady ? "videocam" : "hourglass_top"}</span>
+                                            {isModelReady && isBackendReady ? "Start Live Camera" : !isModelReady ? "Loading AI..." : backendStatus === "waking" ? "Waking up server..." : "Connecting..."}
                                         </button>
+                                        {/* Dual readiness indicators */}
+                                        <div className="flex gap-2 text-[11px]">
+                                            <div className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl border ${isModelReady ? "border-primary/20 bg-primary/5 text-primary" : "border-white/5 bg-white/[0.02] text-slate-600"}`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${isModelReady ? "bg-primary" : "bg-slate-600 animate-pulse"}`}></span>
+                                                {isModelReady ? "MediaPipe ✓" : "MediaPipe..."}
+                                            </div>
+                                            <div className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl border ${isBackendReady ? "border-primary/20 bg-primary/5 text-primary" : "border-white/5 bg-white/[0.02] text-slate-600"}`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${isBackendReady ? "bg-primary" : "bg-orange-400 animate-pulse"}`}></span>
+                                                {backendStatus === "ready" ? "Server ✓" : backendStatus === "waking" ? "Server waking..." : "Server..."}
+                                            </div>
+                                        </div>
                                         <label className={`w-full py-3.5 rounded-2xl text-base font-bold uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-3 border cursor-pointer ${isModelReady ? "bg-white/5 border-white/15 text-white hover:bg-white/10 active:scale-[0.98]" : "bg-gray-800 border-gray-700 text-gray-500 pointer-events-none"}`}>
                                             <span className="material-symbols-outlined text-xl text-blue-400">upload_file</span>Upload Video File
                                             <input type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} disabled={!isModelReady} />
