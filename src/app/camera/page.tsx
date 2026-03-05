@@ -262,19 +262,31 @@ function CameraContent() {
 
                         // --- Repetition Counting Engine ---
                         let mainAngle = 0;
-                        if (exercise === "squat" || exercise === "deadlift") {
+                        let upThreshold = 150;
+                        let downThreshold = 100;
+
+                        if (exercise === "squat") {
                             mainAngle = (features[6] + features[7]) / 2; // Average Knee Angle
+                            upThreshold = 160;   // Almost straight legs
+                            downThreshold = 110; // Below parallel squat
+                        } else if (exercise === "deadlift") {
+                            // Deadlift rep revolves heavily around the Hip angle (hinge), not just knees
+                            mainAngle = (features[4] + features[5]) / 2; // Average Hip Angle (Shoulder-Hip-Knee)
+                            upThreshold = 165;   // Fully stood up, hips extended
+                            downThreshold = 120; // Hinge at the bottom
                         } else if (exercise === "benchpress") {
                             mainAngle = (features[0] + features[1]) / 2; // Average Elbow Angle
+                            upThreshold = 150;   // Arms extended at the top
+                            downThreshold = 95;  // Bar at chest (elbows bent < 90 deg)
                         }
 
-                        if (mainAngle > 150) { // Standing or Arms Extended (Top phase)
+                        if (mainAngle > upThreshold) { // Top phase
                             if (repState === "down") {
                                 localRepCount += 1;
                                 setCurrentReps(localRepCount);
                             }
                             repState = "up";
-                        } else if (mainAngle < 100) { // Squatted or Bar at chest (Bottom phase)
+                        } else if (mainAngle < downThreshold) { // Bottom phase
                             repState = "down";
                         }
                         // ----------------------------------
