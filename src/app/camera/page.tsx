@@ -538,71 +538,81 @@ function CameraContent() {
                         </div>
                     </header>
 
-                    {/* ── Onboarding Overlay ── */}
+                    {/* ── Setup Drawer (floats over live camera) ── */}
                     {!isTrackingStarted && (
-                        <div className="absolute inset-0 z-40 flex items-center justify-center bg-gradient-to-b from-black/70 via-black/50 to-black/70 backdrop-blur-sm">
-                            {countdown !== null ? (
-                                <div className="flex flex-col items-center gap-4">
+                        <div className="absolute inset-0 z-40 flex flex-col justify-end pointer-events-none">
+                            {/* Countdown */}
+                            {countdown !== null && (
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                     <div className="text-8xl md:text-9xl font-black text-primary drop-shadow-[0_0_40px_rgba(57,255,20,0.6)] animate-pulse">{countdown}</div>
-                                    <p className="text-white/70 text-lg font-medium animate-pulse">Get Ready...</p>
                                 </div>
-                            ) : (
-                                <div className="w-full max-w-sm mx-4 bg-black/85 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl p-6 md:p-8 flex flex-col gap-5">
-                                    <div className="text-center">
-                                        <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-3">
-                                            <span className="material-symbols-outlined text-primary text-sm">smart_toy</span>
-                                            <span className="text-primary text-xs font-bold tracking-wider uppercase">{isModelReady ? "AI Ready" : "Loading AI..."}</span>
+                            )}
+
+                            {/* Floating bottom card */}
+                            {countdown === null && (
+                                <div className="pointer-events-auto mx-3 mb-4 md:mx-auto md:w-full md:max-w-md">
+                                    <div className="bg-black/80 backdrop-blur-xl rounded-3xl border border-white/10 shadow-2xl p-5 flex flex-col gap-4">
+                                        {/* Header row */}
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <h2 className="text-white font-black text-lg leading-none">FitVision</h2>
+                                                <p className="text-white/40 text-xs mt-0.5">Choose exercise & start</p>
+                                            </div>
+                                            {/* Server + MediaPipe status pills */}
+                                            <div className="flex items-center gap-1.5">
+                                                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold border ${isModelReady ? "border-primary/30 bg-primary/10 text-primary" : "border-white/10 bg-white/5 text-slate-500"}`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${isModelReady ? "bg-primary" : "bg-slate-500 animate-pulse"}`}></span>
+                                                    Pose
+                                                </div>
+                                                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold border ${isBackendReady ? "border-primary/30 bg-primary/10 text-primary" : "border-orange-400/30 bg-orange-400/5 text-orange-400"}`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${isBackendReady ? "bg-primary" : "bg-orange-400 animate-pulse"}`}></span>
+                                                    {backendStatus === "ready" ? "Server" : backendStatus === "waking" ? "Waking..." : "Server"}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <h2 className="text-white text-2xl md:text-3xl font-black">FitVision</h2>
-                                        <p className="text-white/50 text-sm mt-1">Choose your exercise & start analyzing</p>
-                                    </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-white/60 text-xs font-bold uppercase tracking-wider">Exercise</label>
-                                        <div className="relative">
-                                            <select value={currentExercise} onChange={(e) => setCurrentExercise(e.target.value)}
-                                                className="appearance-none w-full bg-white/5 border border-white/10 rounded-xl text-white font-bold py-3 pl-4 pr-10 focus:outline-none focus:border-primary cursor-pointer hover:bg-white/10 text-base">
-                                                <option value="benchpress">🏋️ Bench Press</option>
-                                                <option value="squat">🦵 Back Squat</option>
-                                                <option value="deadlift">💪 Deadlift</option>
-                                            </select>
-                                            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none">expand_more</span>
+
+                                        {/* Exercise + rep goal row */}
+                                        <div className="flex gap-3">
+                                            <div className="flex-1 relative">
+                                                <select value={currentExercise} onChange={(e) => setCurrentExercise(e.target.value)}
+                                                    className="appearance-none w-full bg-white/5 border border-white/10 rounded-xl text-white font-bold py-2.5 pl-3 pr-8 focus:outline-none focus:border-primary cursor-pointer text-sm">
+                                                    <option value="benchpress">🏋️ Bench Press</option>
+                                                    <option value="squat">🦵 Back Squat</option>
+                                                    <option value="deadlift">💪 Deadlift</option>
+                                                </select>
+                                                <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none text-base">expand_more</span>
+                                            </div>
+                                            <div className="flex flex-col items-center justify-center bg-white/5 border border-white/10 rounded-xl px-4 min-w-[80px]">
+                                                <div className="flex items-center gap-1">
+                                                    <button onClick={() => setRepGoal(r => Math.max(1, r - 1))} className="text-white/40 hover:text-white text-lg leading-none">−</button>
+                                                    <span className="text-primary font-black text-lg w-6 text-center">{repGoal}</span>
+                                                    <button onClick={() => setRepGoal(r => Math.min(50, r + 1))} className="text-white/40 hover:text-white text-lg leading-none">+</button>
+                                                </div>
+                                                <span className="text-white/30 text-[9px] uppercase tracking-wider">Reps</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-white/60 text-xs font-bold uppercase tracking-wider">Rep Goal: <span className="text-primary">{repGoal}</span></label>
-                                        <input type="range" min="1" max="50" value={repGoal} onChange={(e) => setRepGoal(Number(e.target.value))}
-                                            className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#39ff14]" />
-                                    </div>
-                                    <div className="flex flex-col gap-3 mt-1">
+
+                                        {/* Start button */}
                                         <button onClick={() => {
                                             setCountdown(3); let count = 3;
                                             const timer = setInterval(() => { count -= 1; if (count > 0) setCountdown(count); else { clearInterval(timer); setCountdown(null); setIsTrackingStarted(true); isTrackingStartedRef.current = true; } }, 1000);
                                         }} disabled={!isModelReady || !isBackendReady}
-                                            className={`w-full py-4 rounded-2xl text-lg font-black uppercase tracking-wider shadow-xl transition-all flex items-center justify-center gap-3 ${isModelReady && isBackendReady ? "bg-primary text-black hover:scale-[1.02] active:scale-[0.98] cursor-pointer" : "bg-gray-700 text-gray-400 cursor-not-allowed"}`}>
-                                            <span className="material-symbols-outlined text-2xl">{isModelReady && isBackendReady ? "videocam" : "hourglass_top"}</span>
-                                            {isModelReady && isBackendReady ? "Start Live Camera" : !isModelReady ? "Loading AI..." : backendStatus === "waking" ? "Waking up server..." : "Connecting..."}
+                                            className={`w-full py-3.5 rounded-2xl text-base font-black uppercase tracking-wider shadow-xl transition-all flex items-center justify-center gap-2 ${isModelReady && isBackendReady ? "bg-primary text-black hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-[0_0_20px_rgba(57,255,20,0.3)]" : "bg-gray-700/80 text-gray-400 cursor-not-allowed"}`}>
+                                            <span className="material-symbols-outlined text-xl">{isModelReady && isBackendReady ? "play_arrow" : "hourglass_top"}</span>
+                                            {isModelReady && isBackendReady ? "Start Analysis" : !isModelReady ? "Loading Pose AI..." : backendStatus === "waking" ? "Waking up server..." : "Connecting to server..."}
                                         </button>
-                                        {/* Dual readiness indicators */}
-                                        <div className="flex gap-2 text-[11px]">
-                                            <div className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl border ${isModelReady ? "border-primary/20 bg-primary/5 text-primary" : "border-white/5 bg-white/[0.02] text-slate-600"}`}>
-                                                <span className={`w-1.5 h-1.5 rounded-full ${isModelReady ? "bg-primary" : "bg-slate-600 animate-pulse"}`}></span>
-                                                {isModelReady ? "MediaPipe ✓" : "MediaPipe..."}
-                                            </div>
-                                            <div className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-xl border ${isBackendReady ? "border-primary/20 bg-primary/5 text-primary" : "border-white/5 bg-white/[0.02] text-slate-600"}`}>
-                                                <span className={`w-1.5 h-1.5 rounded-full ${isBackendReady ? "bg-primary" : "bg-orange-400 animate-pulse"}`}></span>
-                                                {backendStatus === "ready" ? "Server ✓" : backendStatus === "waking" ? "Server waking..." : "Server..."}
-                                            </div>
-                                        </div>
-                                        <label className={`w-full py-3.5 rounded-2xl text-base font-bold uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-3 border cursor-pointer ${isModelReady ? "bg-white/5 border-white/15 text-white hover:bg-white/10 active:scale-[0.98]" : "bg-gray-800 border-gray-700 text-gray-500 pointer-events-none"}`}>
-                                            <span className="material-symbols-outlined text-xl text-blue-400">upload_file</span>Upload Video File
+
+                                        {/* Upload fallback */}
+                                        <label className={`w-full py-2.5 rounded-xl text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 border cursor-pointer ${isModelReady ? "bg-white/5 border-white/10 text-white/60 hover:bg-white/10" : "bg-gray-800/50 border-gray-700/50 text-gray-600 pointer-events-none"}`}>
+                                            <span className="material-symbols-outlined text-base text-blue-400">upload_file</span>Upload Video
                                             <input type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} disabled={!isModelReady} />
                                         </label>
                                     </div>
-                                    <p className="text-center text-white/30 text-xs">💡 Stand 2-3 meters from camera for best results</p>
                                 </div>
                             )}
                         </div>
                     )}
+
 
                     {/* ── Mobile Bottom HUD ── */}
                     {isTrackingStarted && (
