@@ -465,6 +465,13 @@ function CameraContent() {
             if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
                 mediaRecorderRef.current.stop();
             }
+
+            // Forcefully stop raw hardware tracks to prevent camera lock bug
+            if (videoRef.current && videoRef.current.srcObject) {
+                const stream = videoRef.current.srcObject as MediaStream;
+                stream.getTracks().forEach(t => t.stop());
+                videoRef.current.srcObject = null;
+            }
         };
     }, [areScriptsLoaded, facingMode]);
 
