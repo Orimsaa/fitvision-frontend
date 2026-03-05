@@ -34,6 +34,7 @@ function CameraContent() {
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const debugAngleRef = useRef<HTMLDivElement>(null);
     const [isModelReady, setIsModelReady] = useState(false);
     const [areScriptsLoaded, setAreScriptsLoaded] = useState(false);
     const [isBackendReady, setIsBackendReady] = useState(false);
@@ -280,9 +281,16 @@ function CameraContent() {
                             upThreshold = 165;   // Fully stood up, hips extended
                             downThreshold = 120; // Hinge at the bottom
                         } else if (exercise === "benchpress") {
-                            mainAngle = (features[0] + features[1]) / 2; // Average Elbow Angle
-                            upThreshold = 140;   // Arms extended at the top (lowered from 150 for better detection)
-                            downThreshold = 75;  // Bar at chest (lowered from 95 based on video test)
+                            // Use Euclidean distance (Shoulder to Wrist) to measure arm extension regardless of camera angle
+                            const distLeft = Math.hypot(lm[11].x - lm[15].x, lm[11].y - lm[15].y);
+                            const distRight = Math.hypot(lm[12].x - lm[16].x, lm[12].y - lm[16].y);
+                            mainAngle = Math.max(distLeft, distRight) * 1000;
+                            upThreshold = 80;    // Arms extended at the top
+                            downThreshold = 63;  // Bar at chest
+                        }
+
+                        if (debugAngleRef.current) {
+                            debugAngleRef.current.innerText = `Angle: ${Math.round(mainAngle)} | State: ${repStateRef.current}`;
                         }
 
                         if (mainAngle > upThreshold) { // Top phase
@@ -543,6 +551,11 @@ function CameraContent() {
                         className="absolute inset-0 z-10 w-full h-full object-cover pointer-events-none"
                         style={{ transform: facingMode === "user" ? "scaleX(-1)" : "scaleX(1)" }}
                     />
+
+                    {/* Debug Display */}
+                    <div ref={debugAngleRef} className="absolute top-20 left-4 z-50 bg-black/70 text-primary font-mono p-2 rounded text-sm pointer-events-none border border-primary/30">
+                        Angle: 0 | State: up
+                    </div>
 
                     {/* Top Bar */}
                     <header className="relative z-30 flex items-center justify-between p-3 md:p-4">
