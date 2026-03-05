@@ -245,31 +245,29 @@ function CameraContent() {
 
                     canvasCtx.restore();
 
+                    canvasCtx.restore();
+
                     frameCount++;
-                    // Run inference every 6 frames to keep real-time UI smooth AND only if tracking has started
-                    if (frameCount % 6 === 0 && !isPredicting && isTrackingStartedRef.current) {
-                        isPredicting = true;
+                    const lm = results.poseLandmarks;
+                    const exercise = exerciseRef.current;
+                    const features = [
+                        calculateAngle(lm[11], lm[13], lm[15]), // l_shoulder, l_elbow, l_wrist
+                        calculateAngle(lm[12], lm[14], lm[16]), // r_shoulder, r_elbow, r_wrist
+                        calculateAngle(lm[23], lm[11], lm[13]), // l_hip, l_shoulder, l_elbow
+                        calculateAngle(lm[24], lm[12], lm[14]), // r_hip, r_shoulder, r_elbow
+                        calculateAngle(lm[11], lm[23], lm[25]), // l_shoulder, l_hip, l_knee
+                        calculateAngle(lm[12], lm[24], lm[26]), // r_shoulder, r_hip, r_knee
+                        calculateAngle(lm[23], lm[25], lm[27]), // l_hip, l_knee, l_ankle
+                        calculateAngle(lm[24], lm[26], lm[28]), // r_hip, r_knee, r_ankle
+                        Math.abs(lm[11].x - lm[12].x),
+                        Math.abs(lm[23].x - lm[24].x),
+                        Math.abs((lm[11].y + lm[12].y) / 2 - (lm[23].y + lm[24].y) / 2),
+                        Math.abs(lm[13].y - lm[14].y) < 0.05 ? 1 : 0,
+                        Math.abs(lm[25].y - lm[26].y) < 0.05 ? 1 : 0
+                    ];
 
-                        const lm = results.poseLandmarks;
-                        const features = [
-                            calculateAngle(lm[11], lm[13], lm[15]), // l_shoulder, l_elbow, l_wrist
-                            calculateAngle(lm[12], lm[14], lm[16]), // r_shoulder, r_elbow, r_wrist
-                            calculateAngle(lm[23], lm[11], lm[13]), // l_hip, l_shoulder, l_elbow
-                            calculateAngle(lm[24], lm[12], lm[14]), // r_hip, r_shoulder, r_elbow
-                            calculateAngle(lm[11], lm[23], lm[25]), // l_shoulder, l_hip, l_knee
-                            calculateAngle(lm[12], lm[24], lm[26]), // r_shoulder, r_hip, r_knee
-                            calculateAngle(lm[23], lm[25], lm[27]), // l_hip, l_knee, l_ankle
-                            calculateAngle(lm[24], lm[26], lm[28]), // r_hip, r_knee, r_ankle
-                            Math.abs(lm[11].x - lm[12].x),
-                            Math.abs(lm[23].x - lm[24].x),
-                            Math.abs((lm[11].y + lm[12].y) / 2 - (lm[23].y + lm[24].y) / 2),
-                            Math.abs(lm[13].y - lm[14].y) < 0.05 ? 1 : 0,
-                            Math.abs(lm[25].y - lm[26].y) < 0.05 ? 1 : 0
-                        ];
-
-                        const exercise = exerciseRef.current;
-
-                        // --- Repetition Counting Engine ---
+                    // --- Real-time Repetition Counting Engine (Outside the slow API lock!) ---
+                    if (isTrackingStartedRef.current) {
                         let mainAngle = 0;
                         let upThreshold = 150;
                         let downThreshold = 100;
@@ -298,7 +296,12 @@ function CameraContent() {
                         } else if (mainAngle < downThreshold) { // Bottom phase
                             repStateRef.current = "down";
                         }
-                        // ----------------------------------
+                    }
+                    // ----------------------------------
+
+                    // Run ML inference API every 5 frames to keep UI smooth AND only if not currently awaiting an API response
+                    if (frameCount % 5 === 0 && !isPredicting && isTrackingStartedRef.current) {
+                        isPredicting = true;
 
                         const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://fitvision-ap.onrender.com";
 
