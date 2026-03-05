@@ -109,6 +109,12 @@ function CameraContent() {
         isMockVideoPlaying.current = true;
         setIsTrackingStarted(true);
         isTrackingStartedRef.current = true;
+
+        // Reset repetition counters for the new video
+        repStateRef.current = "up";
+        localRepCountRef.current = 0;
+        setCurrentReps(0);
+
         setFeedbackDetail("Processing Simulation...");
 
         videoElement.play();
