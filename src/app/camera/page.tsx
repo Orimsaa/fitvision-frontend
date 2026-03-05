@@ -245,8 +245,6 @@ function CameraContent() {
 
                     canvasCtx.restore();
 
-                    canvasCtx.restore();
-
                     frameCount++;
                     const lm = results.poseLandmarks;
                     const exercise = exerciseRef.current;
