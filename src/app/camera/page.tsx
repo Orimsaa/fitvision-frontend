@@ -279,8 +279,8 @@ function CameraContent() {
                             downThreshold = 120; // Hinge at the bottom
                         } else if (exercise === "benchpress") {
                             mainAngle = (features[0] + features[1]) / 2; // Average Elbow Angle
-                            upThreshold = 150;   // Arms extended at the top
-                            downThreshold = 95;  // Bar at chest (elbows bent < 90 deg)
+                            upThreshold = 140;   // Arms extended at the top (lowered from 150 for better detection)
+                            downThreshold = 75;  // Bar at chest (lowered from 95 based on video test)
                         }
 
                         if (mainAngle > upThreshold) { // Top phase
