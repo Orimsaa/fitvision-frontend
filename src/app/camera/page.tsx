@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import Script from "next/script";
+import { useLanguage } from "@/context/LanguageContext";
 
 // --- Helper Functions ---
 function calculateAngle(a: any, b: any, c: any) {
@@ -15,6 +16,7 @@ function calculateAngle(a: any, b: any, c: any) {
 
 function CameraContent() {
     const searchParams = useSearchParams();
+    const { t } = useLanguage();
     const model = searchParams.get("model")?.toLowerCase() || "benchpress";
     const repsParam = parseInt(searchParams.get("reps") || "12", 10);
 
@@ -30,7 +32,12 @@ function CameraContent() {
     const repStateRef = useRef<"up" | "down">("up");
     const localRepCountRef = useRef<number>(0);
 
-    const exerciseName = currentExercise === "squat" ? "Back Squat" : currentExercise === "deadlift" ? "Deadlift" : "Bench Press";
+    const getExerciseName = (ex: string) => {
+        if (ex === "squat") return t.camera.exerciseName.squat;
+        if (ex === "deadlift") return t.camera.exerciseName.deadlift;
+        return t.camera.exerciseName.benchpress;
+    };
+    const exerciseName = getExerciseName(currentExercise);
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -50,7 +57,7 @@ function CameraContent() {
 
     // Dynamic AI State
     const [isGoodForm, setIsGoodForm] = useState(true);
-    const isGoodFormRef = useRef(true); // Needed to access latest state inside MediaPipe onResults callback
+    const isGoodFormRef = useRef(true);
     const [feedbackTitle, setFeedbackTitle] = useState("AI Ready");
     const [feedbackDetail, setFeedbackDetail] = useState("Start exercising to get feedback.");
     const [formScore, setFormScore] = useState(100);
@@ -74,7 +81,7 @@ function CameraContent() {
                 if (res.ok) {
                     setIsBackendReady(true);
                     setBackendStatus("ready");
-                    return; // done!
+                    return;
                 }
             } catch {
                 // still waking — ignore error and retry
@@ -95,7 +102,6 @@ function CameraContent() {
         const file = e.target.files?.[0];
         if (!file || !videoRef.current || !poseWrapperRef.current) return;
 
-        // Stop the webcam camera wrapper
         if (cameraWrapperRef.current) {
             cameraWrapperRef.current.stop();
         }
@@ -111,12 +117,11 @@ function CameraContent() {
         setIsTrackingStarted(true);
         isTrackingStartedRef.current = true;
 
-        // Reset repetition counters for the new video
         repStateRef.current = "up";
         localRepCountRef.current = 0;
         setCurrentReps(0);
 
-        setFeedbackDetail("Processing Simulation...");
+        setFeedbackDetail(t.camera.feedback.processingSim);
 
         videoElement.play();
 
@@ -148,14 +153,13 @@ function CameraContent() {
     const exerciseRef = useRef(currentExercise);
     useEffect(() => {
         exerciseRef.current = currentExercise;
-        // Reset feedback when exercise changes
         setIsGoodForm(true);
         isGoodFormRef.current = true;
-        setFeedbackTitle("AI Ready");
-        setFeedbackDetail("Wait for AI to process form...");
+        setFeedbackTitle(t.camera.feedback.aiReady);
+        setFeedbackDetail(t.camera.feedback.waitForAI);
         setFormScore(100);
         setCurrentReps(0);
-    }, [currentExercise]);
+    }, [currentExercise, t]);
 
     useEffect(() => {
         if (!areScriptsLoaded) return;
@@ -173,7 +177,7 @@ function CameraContent() {
         let pose: any = null;
         let isUnmounted = false;
         let frameCount = 0;
-        let isPredicting = false; // Prevent overlapping fetch calls
+        let isPredicting = false;
         let repState = "up";
         let localRepCount = 0;
 
@@ -210,7 +214,6 @@ function CameraContent() {
                     canvasElement.width = videoElement.videoWidth;
                     canvasElement.height = videoElement.videoHeight;
 
-                    // Clear previous session errors on first frame
                     if (!sessionStorage.getItem('fitvision_errors_cleared')) {
                         sessionStorage.removeItem('fitvision_errors');
                         sessionStorage.setItem('fitvision_errors_cleared', 'true');
@@ -223,24 +226,19 @@ function CameraContent() {
                 if (results.image) {
                     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
                 } else if (videoElement && videoElement.videoWidth > 0) {
-                    // Fallback: draw the video element directly (essential for mock video uploads)
                     canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
                 }
 
                 if (results.poseLandmarks) {
-                    // Dynamic styling based on real-time form status
                     const isGood = isGoodFormRef.current;
-                    const primaryColor = isGood ? "#38ff14" : "#ff1e1e"; // Neon Green vs Neon Red
+                    const primaryColor = isGood ? "#38ff14" : "#ff1e1e";
 
                     canvasCtx.save();
-                    // Glow Effect
                     canvasCtx.shadowBlur = 15;
                     canvasCtx.shadowColor = primaryColor;
 
-                    // Draw glowing skeleton lines
                     drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, { color: primaryColor, lineWidth: 6 });
 
-                    // Remove glow for the joints (to keep them sharp)
                     canvasCtx.shadowBlur = 0;
                     drawLandmarks(canvasCtx, results.poseLandmarks, { color: "#ffffff", fillColor: primaryColor, lineWidth: 2, radius: 4 });
 
@@ -250,14 +248,14 @@ function CameraContent() {
                     const lm = results.poseLandmarks;
                     const exercise = exerciseRef.current;
                     const features = [
-                        calculateAngle(lm[11], lm[13], lm[15]), // l_shoulder, l_elbow, l_wrist
-                        calculateAngle(lm[12], lm[14], lm[16]), // r_shoulder, r_elbow, r_wrist
-                        calculateAngle(lm[23], lm[11], lm[13]), // l_hip, l_shoulder, l_elbow
-                        calculateAngle(lm[24], lm[12], lm[14]), // r_hip, r_shoulder, r_elbow
-                        calculateAngle(lm[11], lm[23], lm[25]), // l_shoulder, l_hip, l_knee
-                        calculateAngle(lm[12], lm[24], lm[26]), // r_shoulder, r_hip, r_knee
-                        calculateAngle(lm[23], lm[25], lm[27]), // l_hip, l_knee, l_ankle
-                        calculateAngle(lm[24], lm[26], lm[28]), // r_hip, r_knee, r_ankle
+                        calculateAngle(lm[11], lm[13], lm[15]),
+                        calculateAngle(lm[12], lm[14], lm[16]),
+                        calculateAngle(lm[23], lm[11], lm[13]),
+                        calculateAngle(lm[24], lm[12], lm[14]),
+                        calculateAngle(lm[11], lm[23], lm[25]),
+                        calculateAngle(lm[12], lm[24], lm[26]),
+                        calculateAngle(lm[23], lm[25], lm[27]),
+                        calculateAngle(lm[24], lm[26], lm[28]),
                         Math.abs(lm[11].x - lm[12].x),
                         Math.abs(lm[23].x - lm[24].x),
                         Math.abs((lm[11].y + lm[12].y) / 2 - (lm[23].y + lm[24].y) / 2),
@@ -265,53 +263,47 @@ function CameraContent() {
                         Math.abs(lm[25].y - lm[26].y) < 0.05 ? 1 : 0
                     ];
 
-                    // --- Real-time Repetition Counting Engine (Outside the slow API lock!) ---
                     if (isTrackingStartedRef.current) {
                         let mainAngle = 0;
                         let upThreshold = 150;
                         let downThreshold = 100;
 
                         if (exercise === "squat") {
-                            mainAngle = (features[6] + features[7]) / 2; // Average Knee Angle
-                            upThreshold = 160;   // Almost straight legs
-                            downThreshold = 110; // Below parallel squat
+                            mainAngle = (features[6] + features[7]) / 2;
+                            upThreshold = 160;
+                            downThreshold = 110;
                         } else if (exercise === "deadlift") {
-                            // Deadlift rep revolves heavily around the Hip angle (hinge), not just knees
-                            mainAngle = (features[4] + features[5]) / 2; // Average Hip Angle (Shoulder-Hip-Knee)
-                            upThreshold = 165;   // Fully stood up, hips extended
-                            downThreshold = 120; // Hinge at the bottom
+                            mainAngle = (features[4] + features[5]) / 2;
+                            upThreshold = 165;
+                            downThreshold = 120;
                         } else if (exercise === "benchpress") {
-                            // Use Euclidean distance (Shoulder to Wrist) to measure arm extension regardless of camera angle
                             const distLeft = Math.hypot(lm[11].x - lm[15].x, lm[11].y - lm[15].y);
                             const distRight = Math.hypot(lm[12].x - lm[16].x, lm[12].y - lm[16].y);
                             mainAngle = Math.max(distLeft, distRight) * 1000;
-                            upThreshold = 80;    // Arms extended at the top
-                            downThreshold = 63;  // Bar at chest
+                            upThreshold = 80;
+                            downThreshold = 63;
                         }
 
                         if (debugAngleRef.current) {
                             debugAngleRef.current.innerText = `Angle: ${Math.round(mainAngle)} | State: ${repStateRef.current}`;
                         }
 
-                        if (mainAngle > upThreshold) { // Top phase
+                        if (mainAngle > upThreshold) {
                             if (repStateRef.current === "down") {
                                 localRepCountRef.current += 1;
                                 setCurrentReps(localRepCountRef.current);
                             }
                             repStateRef.current = "up";
-                        } else if (mainAngle < downThreshold) { // Bottom phase
+                        } else if (mainAngle < downThreshold) {
                             repStateRef.current = "down";
                         }
                     }
-                    // ----------------------------------
 
-                    // Run ML inference API every 5 frames to keep UI smooth AND only if not currently awaiting an API response
                     if (frameCount % 5 === 0 && !isPredicting && isTrackingStartedRef.current) {
                         isPredicting = true;
 
                         const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://fitvision-ap.onrender.com";
 
-                        // Fire and forget! Do not await this block in the main onResults thread to avoid freezing the camera canvas.
                         (async () => {
                             try {
                                 let payload: any;
@@ -320,11 +312,11 @@ function CameraContent() {
                                     const l_hip = lm[23], r_hip = lm[24];
                                     const l_knee = lm[25], r_knee = lm[26];
                                     const l_ankle = lm[27], r_ankle = lm[28];
-                                    const l_foot = lm[31] || lm[27], r_foot = lm[32] || lm[28]; // Fallback to ankle if foot not visible
+                                    const l_foot = lm[31] || lm[27], r_foot = lm[32] || lm[28];
 
                                     const mid_hip = { x: (l_hip.x + r_hip.x) / 2, y: (l_hip.y + r_hip.y) / 2 };
                                     const mid_shoulder = { x: (l_shoulder.x + r_shoulder.x) / 2, y: (l_shoulder.y + r_shoulder.y) / 2 };
-                                    const vertical = { x: mid_hip.x, y: mid_hip.y - 1.0 }; // Vector straight up since Y goes down
+                                    const vertical = { x: mid_hip.x, y: mid_hip.y - 1.0 };
 
                                     const spine_angle = calculateAngle(vertical, mid_hip, mid_shoulder);
                                     const left_knee_angle = calculateAngle(l_hip, l_knee, l_ankle);
@@ -333,14 +325,11 @@ function CameraContent() {
                                     const right_hip_angle = calculateAngle(r_shoulder, r_hip, r_knee);
 
                                     payload = {
-                                        left_knee_angle: left_knee_angle,
-                                        right_knee_angle: right_knee_angle,
-                                        left_hip_angle: left_hip_angle,
-                                        right_hip_angle: right_hip_angle,
+                                        left_knee_angle, right_knee_angle,
+                                        left_hip_angle, right_hip_angle,
                                         left_ankle_angle: calculateAngle(l_knee, l_ankle, l_foot),
                                         right_ankle_angle: calculateAngle(r_knee, r_ankle, r_foot),
-                                        spine_angle: spine_angle,
-                                        torso_lean: spine_angle,
+                                        spine_angle, torso_lean: spine_angle,
                                         left_knee_lateral: l_knee.x - l_ankle.x,
                                         right_knee_lateral: r_ankle.x - r_knee.x,
                                         symmetry_score: Math.abs(left_knee_angle - right_knee_angle) + Math.abs(left_hip_angle - right_hip_angle),
@@ -360,31 +349,26 @@ function CameraContent() {
                                     const data = await res.json();
                                     console.log('[FV] API Response:', { form_correct: data.form_correct, confidence: data.confidence?.toFixed(3) });
 
-                                    // Push prediction into rolling window (keep last 5)
                                     recentPredictions.current.push({ correct: data.form_correct, confidence: data.confidence });
                                     if (recentPredictions.current.length > 5) recentPredictions.current.shift();
 
-                                    // Determine overall form status using MAJORITY VOTE of recent predictions
                                     const window = recentPredictions.current;
                                     const incorrectCount = window.filter(p => !p.correct).length;
-                                    const isFormCorrect = incorrectCount < Math.ceil(window.length / 2); // majority must be incorrect to flag it
+                                    const isFormCorrect = incorrectCount < Math.ceil(window.length / 2);
 
                                     setIsGoodForm(isFormCorrect);
                                     isGoodFormRef.current = isFormCorrect;
                                     setFeedbackDetail(data.feedback);
-                                    setFeedbackTitle(isFormCorrect ? "Good Form! 💪" : "Correction Needed");
+                                    setFeedbackTitle(isFormCorrect ? t.camera.feedback.goodForm : t.camera.feedback.correctionNeeded);
 
-                                    // Calculate smoothed score from the rolling window
                                     let rawScore: number;
                                     if (isFormCorrect) {
-                                        // Average confidence of correct predictions
                                         const correctPreds = window.filter(p => p.correct);
                                         const avgConf = correctPreds.length > 0 ? correctPreds.reduce((s, p) => s + p.confidence, 0) / correctPreds.length : 0.8;
                                         rawScore = avgConf * 100;
                                         if (rawScore > 98) rawScore = 95 + Math.random() * 4;
                                         if (rawScore < 70) rawScore = 70 + Math.random() * 10;
                                     } else {
-                                        // Average confidence of incorrect predictions → invert
                                         const badPreds = window.filter(p => !p.correct);
                                         const avgConf = badPreds.length > 0 ? badPreds.reduce((s, p) => s + p.confidence, 0) / badPreds.length : 0.5;
                                         rawScore = (1 - avgConf) * 100;
@@ -397,10 +381,8 @@ function CameraContent() {
                                     setFormScore(currentScore);
                                     statsRef.current.scores.push(currentScore);
 
-                                    // Auto-Capture Error Replay (On-Demand 3-second recording)
-                                    if (!isFormCorrect) { // use the smoothed isFormCorrect instead of data.form_correct
+                                    if (!isFormCorrect) {
                                         const now = Date.now();
-                                        // Wait at least 6 seconds between captures to avoid spam
                                         if (now - lastErrorTimeRef.current > 6000) {
                                             lastErrorTimeRef.current = now;
 
@@ -422,7 +404,7 @@ function CameraContent() {
                                                     const url = URL.createObjectURL(blob);
                                                     const errorRecord = {
                                                         url,
-                                                        title: data.error_type || "Correction Needed",
+                                                        title: data.error_type || t.camera.feedback.correctionNeeded,
                                                         detail: data.feedback,
                                                         time: new Date().toLocaleTimeString()
                                                     };
@@ -433,7 +415,6 @@ function CameraContent() {
                                                 recorder.start();
                                                 mediaRecorderRef.current = recorder;
 
-                                                // Stop recording after 3 seconds
                                                 setTimeout(() => {
                                                     if (recorder.state !== 'inactive') {
                                                         recorder.stop();
@@ -452,7 +433,7 @@ function CameraContent() {
                             } catch (e) {
                                 console.error("AI Predict Error", e);
                             } finally {
-                                isPredicting = false; // Unlock next prediction
+                                isPredicting = false;
                             }
                         })();
                     }
@@ -496,7 +477,6 @@ function CameraContent() {
                 mediaRecorderRef.current.stop();
             }
 
-            // Forcefully stop raw hardware tracks to prevent camera lock bug
             if (videoRef.current && videoRef.current.srcObject) {
                 const stream = videoRef.current.srcObject as MediaStream;
                 stream.getTracks().forEach(t => t.stop());
@@ -521,13 +501,10 @@ function CameraContent() {
             errors: errors
         };
 
-        // Save for immediate summary view
         sessionStorage.setItem('fitvision_session_stats', JSON.stringify(sessionPayload));
 
-        // Save to persistent history
         const history = JSON.parse(localStorage.getItem('fitvision_history') || '[]');
-        history.unshift(sessionPayload); // Add new session to top of list
-        // Keep only last 50 sessions to prevent localStorage quota issues especially with Blob URLs
+        history.unshift(sessionPayload);
         if (history.length > 50) history.pop();
         localStorage.setItem('fitvision_history', JSON.stringify(history));
     };
@@ -561,7 +538,7 @@ function CameraContent() {
                     <header className="relative z-30 flex items-center justify-between p-3 md:p-4">
                         <Link href="/" className="flex items-center gap-1.5 text-white/80 hover:text-white bg-black/30 backdrop-blur-md px-3 py-2 rounded-full border border-white/10 transition-colors">
                             <span className="material-symbols-outlined text-lg">arrow_back_ios_new</span>
-                            <span className="text-sm font-semibold hidden sm:block">Back</span>
+                            <span className="text-sm font-semibold hidden sm:block">{t.camera.back}</span>
                         </Link>
                         <div className="flex items-center gap-2">
                             <button onClick={() => setFacingMode(p => p === "user" ? "environment" : "user")}
@@ -570,12 +547,12 @@ function CameraContent() {
                             </button>
                             {isTrackingStarted && (
                                 <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10 text-xs font-bold text-white/80 tracking-wider">
-                                    <span className="material-symbols-outlined text-primary text-sm">smart_toy</span>AI ACTIVE
+                                    <span className="material-symbols-outlined text-primary text-sm">smart_toy</span>{t.camera.aiActive}
                                 </div>
                             )}
                             <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold tracking-wider ${isModelReady ? "bg-red-600/80 text-white" : "bg-orange-500/80 text-white"}`}>
                                 <div className={`w-1.5 h-1.5 rounded-full bg-white ${isModelReady ? "animate-pulse" : ""}`}></div>
-                                {isModelReady ? "LIVE" : "LOADING"}
+                                {isModelReady ? t.camera.live : t.camera.loading}
                             </div>
                         </div>
                     </header>
@@ -590,35 +567,32 @@ function CameraContent() {
                                 </div>
                             )}
 
-                            {/* Main warmup card — sits at bottom, semi-transparent */}
+                            {/* Main warmup card */}
                             {countdown === null && (
                                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/90 to-transparent pt-12 pb-5 px-4 md:px-0">
                                     <div className="md:max-w-md md:mx-auto flex flex-col gap-4">
 
                                         {/* ─ Step Progress ─ */}
                                         <div className="flex items-center gap-2">
-                                            {/* Step 1: Camera */}
                                             <div className={`flex-1 flex items-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all ${areScriptsLoaded ? "border-primary/30 bg-primary/5 text-primary" : "border-white/10 bg-white/5 text-slate-500"}`}>
                                                 <span className={`text-sm material-symbols-outlined ${areScriptsLoaded ? "text-primary" : "text-slate-600"}`}>
                                                     {areScriptsLoaded ? "check_circle" : "camera_alt"}
                                                 </span>
-                                                <span>{areScriptsLoaded ? "Camera ✓" : "Camera..."}</span>
+                                                <span>{areScriptsLoaded ? t.camera.warmup.cameraReady : t.camera.warmup.cameraLoading}</span>
                                             </div>
                                             <div className={`w-4 h-px ${isModelReady ? "bg-primary/40" : "bg-white/10"}`}></div>
-                                            {/* Step 2: Pose AI */}
                                             <div className={`flex-1 flex items-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all ${isModelReady ? "border-primary/30 bg-primary/5 text-primary" : "border-white/10 bg-white/5 text-slate-500"}`}>
                                                 <span className={`text-sm material-symbols-outlined ${isModelReady ? "text-primary" : "text-slate-600 animate-pulse"}`}>
                                                     {isModelReady ? "check_circle" : "psychology"}
                                                 </span>
-                                                <span>{isModelReady ? "Pose AI ✓" : "Pose AI..."}</span>
+                                                <span>{isModelReady ? t.camera.warmup.poseReady : t.camera.warmup.poseLoading}</span>
                                             </div>
                                             <div className={`w-4 h-px ${isBackendReady ? "bg-primary/40" : "bg-white/10"}`}></div>
-                                            {/* Step 3: Server */}
                                             <div className={`flex-1 flex items-center gap-2 py-2 px-3 rounded-xl border text-xs font-bold transition-all ${isBackendReady ? "border-primary/30 bg-primary/5 text-primary" : "border-orange-400/30 bg-orange-400/5 text-orange-300"}`}>
                                                 <span className={`text-sm material-symbols-outlined ${isBackendReady ? "text-primary" : "text-orange-400 animate-pulse"}`}>
                                                     {isBackendReady ? "check_circle" : "cloud_sync"}
                                                 </span>
-                                                <span>{isBackendReady ? "Server ✓" : backendStatus === "waking" ? "Waking..." : "Server..."}</span>
+                                                <span>{isBackendReady ? t.camera.warmup.serverReady : backendStatus === "waking" ? t.camera.warmup.serverWaking : t.camera.warmup.serverLoading}</span>
                                             </div>
                                         </div>
 
@@ -627,7 +601,7 @@ function CameraContent() {
                                             <div className="flex items-start gap-2 bg-orange-400/5 border border-orange-400/15 rounded-xl px-3 py-2">
                                                 <span className="material-symbols-outlined text-orange-400 text-base mt-0.5 shrink-0">info</span>
                                                 <p className="text-orange-200/60 text-xs leading-relaxed">
-                                                    เซิร์ฟเวอร์ AI กำลังตื่นจากโหมดประหยัดพลังงาน ใช้เวลาประมาณ <span className="text-orange-300 font-bold">30-60 วินาที</span> — เลือกท่าออกกำลังกายระหว่างรอได้เลยครับ
+                                                    {t.camera.warmup.serverMessage} <span className="text-orange-300 font-bold">{t.camera.warmup.serverTime}</span> {t.camera.warmup.serverHint}
                                                 </p>
                                             </div>
                                         )}
@@ -635,23 +609,23 @@ function CameraContent() {
                                         {/* Exercise selector + reps */}
                                         <div className="flex gap-3">
                                             <div className="flex-1 relative">
-                                                <label className="text-white/40 text-[10px] uppercase tracking-wider font-bold mb-1 block">ท่าออกกำลังกาย</label>
+                                                <label className="text-white/40 text-[10px] uppercase tracking-wider font-bold mb-1 block">{t.camera.warmup.exerciseLabel}</label>
                                                 <select value={currentExercise} onChange={(e) => setCurrentExercise(e.target.value)}
                                                     className="appearance-none w-full bg-white/5 border border-white/10 rounded-xl text-white font-bold py-2.5 pl-3 pr-8 focus:outline-none focus:border-primary cursor-pointer text-sm">
-                                                    <option value="benchpress">🏋️ Bench Press</option>
-                                                    <option value="squat">🦵 Back Squat</option>
-                                                    <option value="deadlift">💪 Deadlift</option>
+                                                    <option value="benchpress">{t.camera.exerciseOptions.benchpress}</option>
+                                                    <option value="squat">{t.camera.exerciseOptions.squat}</option>
+                                                    <option value="deadlift">{t.camera.exerciseOptions.deadlift}</option>
                                                 </select>
                                                 <span className="material-symbols-outlined absolute right-2 bottom-2.5 text-white/40 pointer-events-none text-base">expand_more</span>
                                             </div>
                                             <div>
-                                                <label className="text-white/40 text-[10px] uppercase tracking-wider font-bold mb-1 block">เป้าหมาย</label>
+                                                <label className="text-white/40 text-[10px] uppercase tracking-wider font-bold mb-1 block">{t.camera.warmup.goalLabel}</label>
                                                 <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl px-3 h-[42px]">
                                                     <button onClick={() => setRepGoal(r => Math.max(1, r - 1))} className="text-white/40 hover:text-white w-6 text-lg font-bold text-center leading-none">−</button>
                                                     <span className="text-primary font-black text-lg w-7 text-center">{repGoal}</span>
                                                     <button onClick={() => setRepGoal(r => Math.min(50, r + 1))} className="text-white/40 hover:text-white w-6 text-lg font-bold text-center leading-none">+</button>
                                                 </div>
-                                                <label className="text-white/30 text-[9px] text-center block mt-0.5">reps</label>
+                                                <label className="text-white/30 text-[9px] text-center block mt-0.5">{t.camera.reps}</label>
                                             </div>
                                         </div>
 
@@ -674,15 +648,15 @@ function CameraContent() {
                                                 {isModelReady && isBackendReady ? "play_arrow" : "hourglass_top"}
                                             </span>
                                             {isModelReady && isBackendReady
-                                                ? "เริ่มวิเคราะห์ท่า"
-                                                : !isModelReady ? "กำลังโหลด Pose AI..."
-                                                    : "รอเซิร์ฟเวอร์พร้อม..."}
+                                                ? t.camera.warmup.startAnalysis
+                                                : !isModelReady ? t.camera.warmup.loadingPose
+                                                    : t.camera.warmup.waitingServer}
                                         </button>
 
                                         {/* Upload fallback */}
                                         <label className={`w-full py-2.5 rounded-xl text-xs font-bold tracking-wider transition-all flex items-center justify-center gap-2 border cursor-pointer ${isModelReady ? "border-white/8 text-white/30 hover:text-white/50 hover:border-white/15" : "border-white/5 text-white/15 pointer-events-none"}`}>
                                             <span className="material-symbols-outlined text-sm text-blue-400/60">upload_file</span>
-                                            หรืออัปโหลดวิดีโอแทน
+                                            {t.camera.warmup.uploadVideo}
                                             <input type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} disabled={!isModelReady} />
                                         </label>
                                     </div>
@@ -699,7 +673,7 @@ function CameraContent() {
                                 <div className="flex items-center gap-3">
                                     <div className={`shrink-0 w-16 h-16 rounded-2xl flex flex-col items-center justify-center ${isGoodForm ? "bg-primary/15 border border-primary/30" : "bg-red-500/15 border border-red-500/30"}`}>
                                         <span className={`text-2xl font-black leading-none ${isGoodForm ? "text-primary" : "text-red-400"}`}>{formScore}<span className="text-[10px]">%</span></span>
-                                        <span className={`text-[8px] uppercase tracking-wider font-bold ${isGoodForm ? "text-primary/70" : "text-red-400/70"}`}>Form</span>
+                                        <span className={`text-[8px] uppercase tracking-wider font-bold ${isGoodForm ? "text-primary/70" : "text-red-400/70"}`}>{t.camera.form}</span>
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-1.5 mb-0.5">
@@ -711,12 +685,12 @@ function CameraContent() {
                                     <div className="shrink-0 text-center">
                                         <span className="text-blue-400 font-black text-2xl leading-none">{currentReps}</span>
                                         <span className="text-white/40 text-xs font-medium">/{repGoal}</span>
-                                        <div className="text-[8px] text-white/40 uppercase tracking-wider font-bold">Reps</div>
+                                        <div className="text-[8px] text-white/40 uppercase tracking-wider font-bold">{t.camera.reps}</div>
                                     </div>
                                 </div>
                                 <Link href="/summary" onClick={endWorkoutData}
                                     className="mt-3 w-full h-12 bg-red-600/90 hover:bg-red-500 active:scale-[0.98] transition-all rounded-xl text-white font-bold text-sm shadow-lg border border-red-500/40 flex items-center justify-center gap-2 cursor-pointer">
-                                    <span className="material-symbols-outlined text-lg">stop_circle</span>END WORKOUT
+                                    <span className="material-symbols-outlined text-lg">stop_circle</span>{t.camera.endWorkout}
                                 </Link>
                             </div>
                         </div>
@@ -730,12 +704,12 @@ function CameraContent() {
                             <span className="material-symbols-outlined text-primary text-3xl">fitness_center</span>
                             <div>
                                 <h3 className="text-white font-bold text-lg leading-tight">{exerciseName}</h3>
-                                <p className="text-white/40 text-xs">AI-Powered Form Analysis</p>
+                                <p className="text-white/40 text-xs">{t.camera.aiPowered}</p>
                             </div>
                         </div>
 
                         <div className={`rounded-2xl p-5 border text-center ${isGoodForm ? "bg-primary/10 border-primary/20" : "bg-red-500/10 border-red-500/20"}`}>
-                            <span className={`text-[10px] uppercase tracking-[0.2em] font-bold ${isGoodForm ? "text-primary/60" : "text-red-400/60"}`}>Form Score</span>
+                            <span className={`text-[10px] uppercase tracking-[0.2em] font-bold ${isGoodForm ? "text-primary/60" : "text-red-400/60"}`}>{t.camera.formScore}</span>
                             <div className={`text-6xl font-black leading-none mt-1 ${isGoodForm ? "text-primary" : "text-red-400"}`}>{formScore}<span className="text-xl">%</span></div>
                         </div>
 
@@ -750,20 +724,20 @@ function CameraContent() {
                         <div className="grid grid-cols-2 gap-3">
                             <div className="bg-white/5 rounded-2xl p-4 border border-white/5 text-center">
                                 <span className={`material-symbols-outlined text-xl ${isGoodForm ? "text-primary" : "text-orange-400"}`}>health_and_safety</span>
-                                <p className="text-white font-bold text-sm mt-1">{isGoodForm ? "Low Risk" : "High Risk"}</p>
-                                <p className="text-white/30 text-[10px] uppercase tracking-wider mt-0.5">Injury Risk</p>
+                                <p className="text-white font-bold text-sm mt-1">{isGoodForm ? t.camera.lowRisk : t.camera.highRisk}</p>
+                                <p className="text-white/30 text-[10px] uppercase tracking-wider mt-0.5">{t.camera.injuryRisk}</p>
                             </div>
                             <div className="bg-white/5 rounded-2xl p-4 border border-white/5 text-center">
                                 <span className="material-symbols-outlined text-xl text-blue-400">repeat</span>
                                 <p className="text-white font-bold text-sm mt-1"><span className="text-blue-400 text-xl font-black">{currentReps}</span> / {repGoal}</p>
-                                <p className="text-white/30 text-[10px] uppercase tracking-wider mt-0.5">Repetitions</p>
+                                <p className="text-white/30 text-[10px] uppercase tracking-wider mt-0.5">{t.camera.repetitions}</p>
                             </div>
                         </div>
 
                         <div className="mt-auto">
                             <Link href="/summary" onClick={endWorkoutData}
                                 className="w-full h-14 bg-red-600/90 hover:bg-red-500 active:scale-[0.98] transition-all rounded-2xl text-white font-black text-base shadow-lg border border-red-500/40 flex items-center justify-center gap-3 cursor-pointer">
-                                <span className="material-symbols-outlined text-2xl">stop_circle</span>END WORKOUT
+                                <span className="material-symbols-outlined text-2xl">stop_circle</span>{t.camera.endWorkout}
                             </Link>
                         </div>
                     </aside>
@@ -774,10 +748,10 @@ function CameraContent() {
 }
 
 export default function CameraPage() {
+    const { t } = useLanguage();
     return (
-        <Suspense fallback={<div className="min-h-screen bg-black text-white flex items-center justify-center">Loading Camera...</div>}>
+        <Suspense fallback={<div className="min-h-screen bg-black text-white flex items-center justify-center">{t.camera.loadingCamera}</div>}>
             <CameraContent />
         </Suspense>
     );
 }
-

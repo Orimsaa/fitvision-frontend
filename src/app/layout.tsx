@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Space_Grotesk } from "next/font/google";
+import { Space_Grotesk, Kanit } from "next/font/google";
 import Sidebar from "@/components/Sidebar";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { AuthProvider } from "@/context/AuthContext";
@@ -8,6 +8,12 @@ import "./globals.css";
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
   subsets: ["latin"],
+});
+
+const kanit = Kanit({
+  variable: "--font-kanit",
+  subsets: ["thai", "latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -29,7 +35,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${spaceGrotesk.variable} ${spaceGrotesk.className} antialiased font-sans text-slate-100 bg-background-dark min-h-screen font-display`}
+        className={`${spaceGrotesk.variable} ${kanit.variable} ${spaceGrotesk.className} antialiased font-sans text-slate-100 bg-background-dark min-h-screen font-display`}
       >
         <LanguageProvider>
           <AuthProvider>

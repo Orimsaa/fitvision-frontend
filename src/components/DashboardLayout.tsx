@@ -2,9 +2,10 @@
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
+type Language = 'en' | 'th';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-    const { language, setLanguage } = useLanguage();
+    const { language, setLanguage, t } = useLanguage();
     const defaultAvatar = 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuA27nj0lO-CFiCbHV5WY7JdyYn0KZLxAcFyJfVlyHj0s8t2zkyMdrnJdKOFlpT3OeeTkIaYinssvIiwQVZd-PEonFIwPa0-_FQUoPGOdgmCFFxMPIPpveKaTcSIyqLZWjySB7ZZu58OHONYt9rfPco2VI4-bPPW5TsvxabFyx6CrLU-w9Aur278J-pkfDic-F8A-M_pTy88Hs1oo_SyobbHM0vf6Y9bWuieMdksrqbjtj4dqH1_j_Y_XnEUItFA9x07ONGY8FTeK-H6")';
     const [avatar, setAvatar] = useState(defaultAvatar);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -86,8 +87,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                     <div className="fixed inset-0 z-40" onClick={() => setIsNotificationOpen(false)}></div>
                                     <div className="absolute right-0 top-full mt-3 w-72 bg-surface-darker border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden animate-fade-in-up">
                                         <div className="p-4 border-b border-white/5 flex justify-between items-center bg-black/20">
-                                            <h3 className="font-bold text-white text-sm">Notifications</h3>
-                                            <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold">1 New</span>
+                                            <h3 className="font-bold text-white text-sm">{t.notifications.title}</h3>
+                                            <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold">{t.notifications.newCount}</span>
                                         </div>
                                         <div className="max-h-64 overflow-y-auto">
                                             <div className="p-4 hover:bg-white/5 transition-colors cursor-pointer flex gap-3 border-l-2 border-primary">
@@ -95,8 +96,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                                     <span className="material-symbols-outlined text-primary text-sm">emoji_events</span>
                                                 </div>
                                                 <div className="flex flex-col gap-1">
-                                                    <p className="text-sm text-slate-200">New personal record on Squat!</p>
-                                                    <span className="text-xs text-slate-500">2 hours ago</span>
+                                                    <p className="text-sm text-slate-200">{t.notifications.personalRecord}</p>
+                                                    <span className="text-xs text-slate-500">{t.notifications.hoursAgo}</span>
                                                 </div>
                                             </div>
                                             <div className="p-4 hover:bg-white/5 transition-colors cursor-pointer flex gap-3">
@@ -104,8 +105,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                                     <span className="material-symbols-outlined text-blue-400 text-sm">update</span>
                                                 </div>
                                                 <div className="flex flex-col gap-1">
-                                                    <p className="text-sm text-slate-400">System update v2.1 is available.</p>
-                                                    <span className="text-xs text-slate-500">Yesterday</span>
+                                                    <p className="text-sm text-slate-400">{t.notifications.systemUpdate}</p>
+                                                    <span className="text-xs text-slate-500">{t.notifications.yesterday}</span>
                                                 </div>
                                             </div>
                                         </div>

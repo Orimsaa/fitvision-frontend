@@ -121,13 +121,13 @@ export default function SummaryPage() {
 
                         {/* Summary Widget: Repetition Progress */}
                         <div className="bg-black/40 rounded-2xl p-6 md:p-8 border border-white/10 flex flex-col items-center justify-center text-center shadow-lg animate-stagger-summary opacity-0">
-                            <span className="text-slate-400 text-xs md:text-sm font-medium uppercase tracking-wider mb-2">Workout Progress</span>
+                            <span className="text-slate-400 text-xs md:text-sm font-medium uppercase tracking-wider mb-2">{t.summary.workoutProgress}</span>
                             <div className="flex items-end gap-1">
                                 <p className="text-4xl lg:text-5xl font-bold text-blue-400">{stats?.completedReps || 0}</p>
                                 <p className="text-xl md:text-2xl font-medium text-slate-500 mb-1">/ {stats?.repGoal || 0}</p>
                             </div>
                             {stats?.repGoal > 0 && stats?.completedReps >= stats?.repGoal && (
-                                <span className="mt-2 text-[10px] md:text-xs font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded border border-green-400/20">GOAL REACHED!</span>
+                                <span className="mt-2 text-[10px] md:text-xs font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded border border-green-400/20">{t.summary.goalReached}</span>
                             )}
                         </div>
 
@@ -148,7 +148,7 @@ export default function SummaryPage() {
                         <div className="bg-surface-dark border border-white/10 rounded-2xl p-6 animate-stagger-summary opacity-0">
                             <h3 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
                                 <span className="material-symbols-outlined text-orange-400">troubleshoot</span>
-                                Frequent Mistakes Breakdown
+                                {t.summary.frequentMistakes}
                             </h3>
                             <div className="flex flex-wrap gap-3">
                                 {groupErrors(errors).map(([title, count], idx) => (
@@ -215,7 +215,7 @@ export default function SummaryPage() {
                                                     className="w-full bg-slate-800 hover:bg-primary/20 hover:text-primary text-white border border-slate-700 hover:border-primary/50 text-sm font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-2"
                                                 >
                                                     <span className="material-symbols-outlined text-sm">troubleshoot</span>
-                                                    Deep Analysis
+                                                    {t.summary.deepAnalysis}
                                                 </button>
                                             </div>
                                         </div>

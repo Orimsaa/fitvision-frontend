@@ -127,7 +127,7 @@ export default function Home() {
                   </p>
                   <div className="flex items-center gap-3 bg-black/40 p-3 rounded-xl w-max border border-white/10">
                     <span className="material-symbols-outlined text-primary">fitness_center</span>
-                    <span className="text-white/80 text-sm font-medium">Repetitions Goal:</span>
+                    <span className="text-white/80 text-sm font-medium">{t.dashboard.actionCard.repGoalLabel}</span>
                     <input
                       type="number"
                       min="1"
@@ -193,7 +193,7 @@ export default function Home() {
                 <div className="relative z-10">
                   <h3 className="text-lg font-bold text-white mb-2">{t.dashboard.stats.aiTip}</h3>
                   <p className="text-slate-300 text-sm mb-4">
-                    Your squat depth has improved, but watch your knee alignment on the ascent.
+                    {t.dashboard.stats.aiTipDesc}
                   </p>
                   <Link href="/history" className="text-primary text-sm font-bold flex items-center gap-1 hover:gap-2 transition-all">
                     {t.dashboard.stats.seeDetails} <span className="material-symbols-outlined text-sm">arrow_forward</span>

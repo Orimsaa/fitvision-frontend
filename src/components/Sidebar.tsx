@@ -112,7 +112,7 @@ export default function Sidebar() {
                             href="/chat"
                         >
                             <span className={`material-symbols-outlined ${pathname === "/chat" ? "filled" : ""}`}>smart_toy</span>
-                            <span className="font-medium">AI Coach</span>
+                            <span className="font-medium">{t.nav.aiCoach}</span>
                         </Link>
                         <Link
                             className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-colors ${pathname === "/settings"
@@ -129,7 +129,7 @@ export default function Sidebar() {
                             className="flex items-center gap-4 px-4 py-3 rounded-xl transition-colors text-slate-400 hover:text-red-400 hover:bg-red-500/10 text-left mt-4"
                         >
                             <span className="material-symbols-outlined">logout</span>
-                            <span className="font-medium">Logout</span>
+                            <span className="font-medium">{t.nav.logout}</span>
                         </button>
                     </div>
                 </div>
@@ -187,7 +187,7 @@ export default function Sidebar() {
                         }`}
                 >
                     <span className="material-symbols-outlined">smart_toy</span>
-                    <span className="text-[10px] font-medium">AI Coach</span>
+                    <span className="text-[10px] font-medium">{t.nav.aiCoach}</span>
                 </Link>
                 <Link
                     href="/settings"
@@ -202,7 +202,7 @@ export default function Sidebar() {
                     className="flex flex-col items-center gap-1 transition-colors text-slate-400 hover:text-red-400"
                 >
                     <span className="material-symbols-outlined">logout</span>
-                    <span className="text-[10px] font-medium">Logout</span>
+                    <span className="text-[10px] font-medium">{t.nav.logout}</span>
                 </button>
             </nav>
         </>

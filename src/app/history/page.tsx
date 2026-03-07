@@ -122,10 +122,10 @@ export default function HistoryPage() {
                     {/* Stats Cards Row */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                         {[
-                            { icon: "speed", label: "Avg. Score", value: `${stats.avg}%`, color: "text-primary" },
-                            { icon: "emoji_events", label: "Best Score", value: `${stats.best}%`, color: "text-yellow-400" },
-                            { icon: "repeat", label: "Total Reps", value: `${stats.totalReps}`, color: "text-blue-400" },
-                            { icon: "done_all", label: "Sessions", value: `${stats.total}`, color: "text-violet-400" },
+                            { icon: "speed", label: t.history.statsCards.avgScore, value: `${stats.avg}%`, color: "text-primary" },
+                            { icon: "emoji_events", label: t.history.statsCards.bestScore, value: `${stats.best}%`, color: "text-yellow-400" },
+                            { icon: "repeat", label: t.history.statsCards.totalReps, value: `${stats.totalReps}`, color: "text-blue-400" },
+                            { icon: "done_all", label: t.history.statsCards.sessions, value: `${stats.total}`, color: "text-violet-400" },
                         ].map((stat, i) => (
                             <div key={i} className="animate-stagger-history opacity-0 bg-surface-dark rounded-2xl p-4 md:p-5 border border-white/5 relative overflow-hidden group hover:border-primary/20 transition-all">
                                 <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-white/[0.02] to-transparent rounded-bl-2xl pointer-events-none"></div>
@@ -143,11 +143,11 @@ export default function HistoryPage() {
                             <div className="flex justify-between items-center mb-4 relative z-10">
                                 <div>
                                     <h2 className="text-lg font-semibold text-white">{t.history.chart.title}</h2>
-                                    <p className="text-slate-500 text-xs">{history.length} sessions · Last 10 shown</p>
+                                    <p className="text-slate-500 text-xs">{history.length} {t.history.chart.sessionsShown}</p>
                                 </div>
                                 <div className={`flex items-center gap-1.5 text-sm font-semibold ${stats.avg >= 80 ? 'text-primary' : 'text-yellow-400'}`}>
                                     <span className="material-symbols-outlined text-base">trending_up</span>
-                                    {stats.avg}% avg
+                                    {stats.avg}% {t.history.avg}
                                 </div>
                             </div>
                             <div className="w-full h-[180px] relative z-10">
@@ -208,7 +208,7 @@ export default function HistoryPage() {
                                     onClick={() => router.push('/camera')}
                                     className="mt-2 px-6 py-2.5 bg-primary text-black font-bold rounded-xl text-sm hover:shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all active:scale-95"
                                 >
-                                    Start Workout
+                                    {t.history.startWorkout}
                                 </button>
                             </div>
                         ) : (
@@ -241,7 +241,7 @@ export default function HistoryPage() {
                                                 </h4>
                                                 {session.errorCount === 0 && (
                                                     <span className="px-2 py-0.5 text-[10px] font-bold bg-primary/15 text-primary rounded-full border border-primary/20 shrink-0">
-                                                        PERFECT
+                                                        {t.history.perfect}
                                                     </span>
                                                 )}
                                             </div>
@@ -253,7 +253,7 @@ export default function HistoryPage() {
                                                 {session.completedReps > 0 && (
                                                     <span className="flex items-center gap-1 text-blue-400/80">
                                                         <span className="material-symbols-outlined text-[14px]">replay</span>
-                                                        {session.completedReps} reps
+                                                        {session.completedReps} {t.history.reps}
                                                     </span>
                                                 )}
                                                 {session.errorCount > 0 && (

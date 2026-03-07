@@ -4,9 +4,11 @@ import React, { useEffect } from "react";
 import Link from "next/link";
 import anime from "animejs";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function LoginPage() {
     const { login } = useAuth();
+    const { t } = useLanguage();
 
     useEffect(() => {
         // Entrance animation
@@ -70,21 +72,21 @@ export default function LoginPage() {
                 </div>
                 <div className="relative z-20 max-w-lg">
                     <h2 className="text-5xl font-extrabold leading-tight text-slate-100 mb-6">
-                        EVOLVE YOUR <br />
-                        <span className="text-primary italic">PERFORMANCE.</span>
+                        {t.login.heroTitle1} <br />
+                        <span className="text-primary italic">{t.login.heroTitle2}</span>
                     </h2>
                     <p className="text-slate-300 text-lg leading-relaxed">
-                        Access elite biometric tracking and AI-driven workout optimization. Your journey to peak physical condition starts here.
+                        {t.login.heroSubtitle}
                     </p>
                 </div>
                 <div className="relative z-20 flex gap-8 text-sm font-medium text-slate-400">
                     <div className="flex items-center gap-2">
                         <span className="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        Real-time Form Correction
+                        {t.login.feature1}
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="material-symbols-outlined text-primary text-sm">check_circle</span>
-                        Predictive Analytics
+                        {t.login.feature2}
                     </div>
                 </div>
             </div>
@@ -115,8 +117,8 @@ export default function LoginPage() {
 
                 <div className="w-full max-w-md p-8 lg:p-10 rounded-2xl flex flex-col gap-8 shadow-2xl bg-[#12230f]/60 backdrop-blur-xl border border-primary/10 animate-fade-in-up opacity-0">
                     <div className="text-center lg:text-left">
-                        <h3 className="text-3xl font-bold text-slate-100 mb-2">Welcome Back</h3>
-                        <p className="text-slate-400 font-medium">Please enter your details to sign in.</p>
+                        <h3 className="text-3xl font-bold text-slate-100 mb-2">{t.login.welcomeBack}</h3>
+                        <p className="text-slate-400 font-medium">{t.login.signInSubtitle}</p>
                     </div>
 
                     {/* Social Logins */}
@@ -140,19 +142,19 @@ export default function LoginPage() {
 
                     <div className="relative flex items-center py-2">
                         <div className="flex-grow border-t border-white/10"></div>
-                        <span className="flex-shrink mx-4 text-slate-500 text-xs font-bold uppercase tracking-widest">Or continue with</span>
+                        <span className="flex-shrink mx-4 text-slate-500 text-xs font-bold uppercase tracking-widest">{t.login.orContinueWith}</span>
                         <div className="flex-grow border-t border-white/10"></div>
                     </div>
 
                     {/* Form */}
                     <form className="flex flex-col gap-5" onSubmit={handleLogin}>
                         <div className="flex flex-col gap-2">
-                            <label className="text-sm font-semibold text-slate-300 ml-1">Email Address</label>
+                            <label className="text-sm font-semibold text-slate-300 ml-1">{t.login.emailLabel}</label>
                             <div className="relative">
                                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-lg">mail</span>
                                 <input
                                     className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                                    placeholder="name@vision.ai"
+                                    placeholder={t.login.emailPlaceholder}
                                     type="email"
                                     required
                                 />
@@ -160,8 +162,8 @@ export default function LoginPage() {
                         </div>
                         <div className="flex flex-col gap-2">
                             <div className="flex justify-between items-center ml-1">
-                                <label className="text-sm font-semibold text-slate-300">Password</label>
-                                <a className="text-xs font-bold text-primary hover:text-primary/80 transition-colors uppercase tracking-tight" href="#">Forgot?</a>
+                                <label className="text-sm font-semibold text-slate-300">{t.login.passwordLabel}</label>
+                                <a className="text-xs font-bold text-primary hover:text-primary/80 transition-colors uppercase tracking-tight" href="#">{t.login.forgotPassword}</a>
                             </div>
                             <div className="relative">
                                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-lg">lock</span>
@@ -177,23 +179,23 @@ export default function LoginPage() {
                             </div>
                         </div>
                         <button type="submit" className="w-full bg-primary text-black font-black py-4 rounded-xl uppercase tracking-widest hover:shadow-[0_0_20px_rgba(60,249,26,0.6)] transform transition-all active:scale-95 mt-2">
-                            Sign In
+                            {t.login.signIn}
                         </button>
                     </form>
 
                     <div className="text-center">
                         <p className="text-slate-400 text-sm">
-                            Don't have an account?
-                            <a className="text-primary font-bold hover:underline transition-all ml-1 underline-offset-4" href="#">Create Account</a>
+                            {t.login.noAccount}
+                            <a className="text-primary font-bold hover:underline transition-all ml-1 underline-offset-4" href="#">{t.login.createAccount}</a>
                         </p>
                     </div>
                 </div>
 
                 {/* Footer Links */}
                 <div className="mt-12 flex gap-6 text-xs text-slate-600 font-medium uppercase tracking-tighter animate-fade-in-up opacity-0">
-                    <a className="hover:text-primary transition-colors" href="#">Privacy Policy</a>
-                    <a className="hover:text-primary transition-colors" href="#">Terms of Service</a>
-                    <a className="hover:text-primary transition-colors" href="#">Support</a>
+                    <a className="hover:text-primary transition-colors" href="#">{t.login.privacyPolicy}</a>
+                    <a className="hover:text-primary transition-colors" href="#">{t.login.termsOfService}</a>
+                    <a className="hover:text-primary transition-colors" href="#">{t.login.support}</a>
                 </div>
 
                 {/* Decorative background elements */}
