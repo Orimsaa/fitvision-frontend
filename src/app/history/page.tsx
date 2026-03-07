@@ -14,15 +14,6 @@ export default function HistoryPage() {
     useEffect(() => {
         const stored = JSON.parse(localStorage.getItem('fitvision_history') || '[]');
         setHistory(stored);
-
-        anime({
-            targets: '.animate-stagger-history',
-            opacity: [0, 1],
-            translateY: [20, 0],
-            duration: 800,
-            easing: 'easeOutExpo',
-            delay: anime.stagger(100, { start: 100 })
-        });
     }, []);
 
     // Computed stats from real data
@@ -40,6 +31,20 @@ export default function HistoryPage() {
         if (filter === "all") return history;
         return history.filter(s => s.exercise?.toLowerCase() === filter.toLowerCase());
     }, [history, filter]);
+
+    // Run animation AFTER React has rendered elements (triggered by data/filter changes)
+    useEffect(() => {
+        requestAnimationFrame(() => {
+            anime({
+                targets: '.animate-stagger-history',
+                opacity: [0, 1],
+                translateY: [20, 0],
+                duration: 800,
+                easing: 'easeOutExpo',
+                delay: anime.stagger(100, { start: 100 })
+            });
+        });
+    }, [filteredSessions]);
 
     // Build dynamic chart points from recent sessions (up to 10)
     const chartData = useMemo(() => {
