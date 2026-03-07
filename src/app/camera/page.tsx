@@ -68,7 +68,7 @@ function CameraContent() {
 
     // Ping Render backend until it wakes up
     useEffect(() => {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://fitvision-ap.onrender.com";
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://fitvision-backend-production-d268.up.railway.app";
         let attempts = 0;
         let stopped = false;
 
@@ -302,7 +302,7 @@ function CameraContent() {
                     if (frameCount % 5 === 0 && !isPredicting && isTrackingStartedRef.current) {
                         isPredicting = true;
 
-                        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://fitvision-ap.onrender.com";
+                        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://fitvision-backend-production-d268.up.railway.app";
 
                         (async () => {
                             try {
