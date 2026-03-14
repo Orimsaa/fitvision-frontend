@@ -665,6 +665,33 @@ function CameraContent() {
                         </div>
                     )}
 
+                    {/* ── Workout Complete Overlay ── */}
+                    {isTrackingStarted && currentReps >= repGoal && repGoal > 0 && (
+                        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                            <div className="bg-[#111] border border-white/10 p-8 rounded-3xl max-w-sm w-full text-center flex items-center flex-col animate-in fade-in zoom-in duration-300 shadow-[0_0_50px_rgba(57,255,20,0.15)]">
+                                <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mb-5 border border-primary/30">
+                                    <span className="material-symbols-outlined text-primary text-5xl">task_alt</span>
+                                </div>
+                                <h2 className="text-3xl font-black text-white mb-2 tracking-tight">{t.camera.workoutComplete.title}</h2>
+                                <p className="text-white/60 text-sm mb-8 leading-relaxed">
+                                    {t.camera.workoutComplete.subtitle1} <strong>{repGoal}</strong> {t.camera.reps.toLowerCase()} {t.camera.workoutComplete.subtitle2} <strong>{exerciseName}</strong>.
+                                </p>
+                                
+                                <Link href="/summary" onClick={endWorkoutData}
+                                    className="w-full py-4 bg-primary text-black font-black uppercase tracking-widest rounded-2xl flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(57,255,20,0.4)]">
+                                    <span className="material-symbols-outlined text-xl">analytics</span>
+                                    {t.camera.workoutComplete.viewSummary}
+                                </Link>
+                                
+                                <button 
+                                    onClick={() => setRepGoal(prev => prev + 5)}
+                                    className="mt-4 text-white/40 text-xs font-bold uppercase tracking-wider hover:text-white transition-colors py-2">
+                                    {t.camera.workoutComplete.continue}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
 
                     {/* ── Mobile Bottom HUD ── */}
                     {isTrackingStarted && (

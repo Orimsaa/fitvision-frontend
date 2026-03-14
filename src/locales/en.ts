@@ -279,7 +279,14 @@ export const en = {
             correctionNeeded: "Correction Needed",
             processingSim: "Processing Simulation..."
         },
-        loadingCamera: "Loading Camera..."
+        loadingCamera: "Loading Camera...",
+        workoutComplete: {
+            title: "Workout Complete!",
+            subtitle1: "You have successfully completed",
+            subtitle2: "of",
+            viewSummary: "View Summary",
+            continue: "Continue (+5 Reps)"
+        }
     },
     chat: {
         title: "AI Coach",

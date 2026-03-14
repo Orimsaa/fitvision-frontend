@@ -279,7 +279,14 @@ export const th = {
             correctionNeeded: "ต้องปรับปรุง",
             processingSim: "กำลังประมวลผล..."
         },
-        loadingCamera: "กำลังโหลดกล้อง..."
+        loadingCamera: "กำลังโหลดกล้อง...",
+        workoutComplete: {
+            title: "ออกกำลังกายสำเร็จ!",
+            subtitle1: "คุณทำสำเร็จตามเป้าหมาย",
+            subtitle2: "ในท่า",
+            viewSummary: "ดูสรุปผล",
+            continue: "ทำต่อ (+5 ครั้ง)"
+        }
     },
     chat: {
         title: "โค้ช AI",
